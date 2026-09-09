@@ -507,6 +507,65 @@ td input:focus, td select:focus { box-shadow: 0 0 0 4px rgba(105,86,232,.14); }
 .contact-link span { display: block; font-size: 13px; font-weight: 700; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media(max-width:680px) { .contact-grid { grid-template-columns: 1fr; } .contact-link { min-height: 56px; } }
 
+/* ===== MOBILE-FIRST TOUCH LAYER ===== */
+button, input, select, textarea { touch-action: manipulation; }
+@media(max-width:680px) {
+  body { padding: 8px; overflow-x: hidden; }
+  .wrap { width: 100%; }
+  .hero { padding: 18px 14px 15px; margin-bottom: 12px; }
+  .hero h1 { font-size: 21px; line-height: 1.35; flex-wrap: wrap; }
+  .hero p { font-size: 12.5px; line-height: 1.5; }
+  .hero-in { gap: 14px; }
+  .hero-in > div:last-child { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); width: 100%; gap: 7px !important; }
+  .badge-term { grid-column: 1 / -1; width: 100%; min-height: 44px; padding: 9px 12px; }
+  .badge-term input { flex: 1; min-width: 0; font-size: 16px; }
+  .hero .icon-btn { width: 100%; height: 44px; min-width: 0; font-size: 18px; }
+  .secline { gap: 6px; margin-top: 0; }
+  .secline .chip { padding: 7px 9px; font-size: 11px; max-width: 100%; }
+  .card { padding: 13px 11px; margin-bottom: 12px; }
+  .card h3 { margin-bottom: 13px; }
+  .side .card { margin-bottom: 10px; }
+  .lv-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .lv { justify-content: center; padding: 11px 5px; font-size: 13px; }
+  .lv .cnt { padding: 2px 6px; }
+  .rooms { gap: 7px; }
+  .rm { width: 44px; height: 44px; }
+  .bar { gap: 7px; }
+  .bar .btn { flex: 1 1 calc(50% - 7px); min-height: 44px; justify-content: center; padding: 10px 8px; font-size: 13px; }
+  .search { flex: 1 1 100%; min-width: 100%; order: 20; }
+  .search input { min-height: 44px; font-size: 16px; }
+  .prog { margin-top: 14px; }
+  .tbl-wrap { margin: 0 -3px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { min-width: 980px; }
+  thead th { padding: 12px 8px; }
+  tbody td { padding: 7px 7px; }
+  td input, td select { min-height: 42px; font-size: 16px; }
+  td input.txt { min-width: 118px; }
+  .mini { width: 40px; height: 40px; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .st { padding: 12px 9px; gap: 8px; min-width: 0; }
+  .st .ic { width: 36px; height: 36px; font-size: 16px; }
+  .st b { font-size: 18px; }
+  .st span { font-size: 10.5px; }
+  .modal { padding: 10px; }
+  .modal .box { width: 100%; max-height: 90svh; padding: 19px 14px; border-radius: 18px; }
+  .modal h4 { font-size: 18px; }
+  .modal .sub { font-size: 13px; margin-bottom: 17px; }
+  .frow { gap: 7px; margin-bottom: 12px; }
+  .frow input, .frow select, textarea { min-height: 44px; font-size: 16px; }
+  .frow label { font-size: 13px; }
+  .sw { padding: 13px 12px; gap: 9px; }
+  .sw small { font-size: 11px; }
+  #toast { right: 10px; bottom: 10px; left: 10px; max-width: none; font-size: 13px; }
+}
+@media(max-width:380px) {
+  .hero h1 { font-size: 19px; }
+  .hero p { font-size: 11.5px; }
+  .bar .btn { font-size: 12px; }
+  .lv-list { grid-template-columns: repeat(2, 1fr); }
+  .contact-link span { font-size: 12px; }
+}
+
 </style>
 </head>
 <body>
@@ -722,9 +781,11 @@ td input:focus, td select:focus { box-shadow: 0 0 0 4px rgba(105,86,232,.14); }
 const DEF=[{id:"c1",name:"หน่วยที่ 1",max:20},{id:"c2",name:"หน่วยที่ 2",max:20},
 {id:"c3",name:"ชิ้นงาน",max:20},{id:"mid",name:"กลางภาค",max:20},{id:"fin",name:"ปลายภาค",max:20}];
 const SEC0={on:false,hash:"",salt:"",rec:"",recPlain:"",idle:10,ro:false,lockNames:true};
+const START_CLASSES={"ม.6/2":[{"sid":"24813","name":"นาย ขวัญชัย เงินสันเทียะ","s":{},"att":"","flag":""},{"sid":"24871","name":"นาย จิฐิโร วาทานาเบ้","s":{},"att":"","flag":""},{"sid":"24814","name":"นาย ณัฐพล ธงสันเทียะ","s":{},"att":"","flag":""},{"sid":"24836","name":"นาย ภาณุพงศ์ มูลลิสาร","s":{},"att":"","flag":""},{"sid":"24818","name":"นาย รชต แป้นสุข","s":{},"att":"","flag":""},{"sid":"24879","name":"นาย วงศ์แสง วงค์ขันธ์","s":{},"att":"","flag":""},{"sid":"24820","name":"น.ส. ยุภาวดี เข็มสุข","s":{},"att":"","flag":""},{"sid":"24841","name":"น.ส. ญาดา บุญศรี","s":{},"att":"","flag":""},{"sid":"24843","name":"น.ส. ธิชาพร ทะนากลาง","s":{},"att":"","flag":""},{"sid":"24902","name":"น.ส. ปรดา รัตนประพันธ์","s":{},"att":"","flag":""},{"sid":"24810","name":"น.ส. พรรัตน์ สุขเจริญ","s":{},"att":"","flag":""},{"sid":"24783","name":"นาย ธีรวัฒน์ ปีกกระโทก","s":{},"att":"","flag":""},{"sid":"25068","name":"น.ส. สุจินทรา ด่านกระโทก","s":{},"att":"","flag":""},{"sid":"25108","name":"น.ส. กนกวรรณ หมื่นกระโทก","s":{},"att":"","flag":""}],"ม.6/1":[{"sid":"24805","name":"นาย จิรายุทธ อินสันเทียะ","s":{},"att":"","flag":""},{"sid":"24830","name":"นาย จักรินทร์ แถมพลกรัง","s":{},"att":"","flag":""},{"sid":"24809","name":"นาย รัชภูมิ แสนองอาจ","s":{},"att":"","flag":""},{"sid":"25031","name":"น.ส. กัลยดา คงยิ่ง","s":{},"att":"","flag":""},{"sid":"24825","name":"น.ส. พิไลวรรณ นิลออ","s":{},"att":"","flag":""},{"sid":"25060","name":"น.ส. จิราภรณ์ อินธิราช","s":{},"att":"","flag":""},{"sid":"25141","name":"น.ส. พรินทา พิมพ์เสน","s":{},"att":"","flag":""}],"ม.5/2":[{"sid":"24907","name":"นาย ณัชพล บัวเจริญ","s":{},"att":"","flag":""},{"sid":"24870","name":"นาย ธนสิษฐ์ วรรณทรัพย์","s":{},"att":"","flag":""},{"sid":"24886","name":"นาย พร้อมพงษ์ กล้าหาญ (รร)","s":{},"att":"","flag":""},{"sid":"24980","name":"นาย พัชรเมธ ช่างพะเนาว์","s":{},"att":"","flag":""},{"sid":"24873","name":"น.ส. ณัฏฐา พรประทุม","s":{},"att":"","flag":""},{"sid":"24969","name":"น.ส. พรพรรณ แทนมูล (รร)","s":{},"att":"","flag":""},{"sid":"24891","name":"น.ส. วรรณภา คลื่นพลกรัง","s":{},"att":"","flag":""},{"sid":"25084","name":"น.ส. ศศิประภา แห่งภักดี","s":{},"att":"","flag":""},{"sid":"24973","name":"น.ส. ศศิวรรณ เมยประโคน","s":{},"att":"","flag":""},{"sid":"24879","name":"น.ส. อพัชญาดา แสนรัตน์","s":{},"att":"","flag":""},{"sid":"24877","name":"น.ส. วิภาวรรณ ทีสุกะ","s":{},"att":"","flag":""},{"sid":"24908","name":"นาย รุ่งโรจน์ ศรีมุงคุณ","s":{},"att":"","flag":""},{"sid":"24881","name":"นาย จักรกรี ปทุมสูตร","s":{},"att":"","flag":""},{"sid":"24964","name":"นาย ธนกฤต แสนบุญมี","s":{},"att":"","flag":""},{"sid":"25089","name":"นาย ภาณุพงษ์ ปลั่งกลาง sw","s":{},"att":"","flag":""},{"sid":"25027","name":"น.ส. ปิยมน แสนรัมย์","s":{},"att":"","flag":""},{"sid":"25137","name":"นาย วรเทพ สุขใหม่","s":{},"att":"","flag":""},{"sid":"25139","name":"นาย ณัฐพงษ์ กิ่งพุดซา","s":{},"att":"","flag":""}],"ม.5/1":[{"sid":"24880","name":"นาย ดล แววโคกสูง","s":{},"att":"","flag":""},{"sid":"24888","name":"น.ส. ชณิดา เนาว์วัฒน์","s":{},"att":"","flag":""},{"sid":"24889","name":"น.ส. นิภาพร ระดมสุข","s":{},"att":"","flag":""},{"sid":"24875","name":"น.ส. ปาณิศา ประมูล","s":{},"att":"","flag":""},{"sid":"24876","name":"น.ส. ปาริศา ปานานนท์","s":{},"att":"","flag":""},{"sid":"24914","name":"น.ส. พิชญาภา อุทุมพิรัตน์","s":{},"att":"","flag":""},{"sid":"24893","name":"น.ส. ศรัญญา นิ่มจ้อย","s":{},"att":"","flag":""},{"sid":"24878","name":"น.ส. เสาวภาคย์ แก้วระวัง","s":{},"att":"","flag":""},{"sid":"24868","name":"นาย พงศ์พีระ ไพฑูรย์","s":{},"att":"","flag":""},{"sid":"24905","name":"นาย เชาวนาท สิทธิเวช","s":{},"att":"","flag":""},{"sid":"24890","name":"น.ส. พศิกา เทียมถม","s":{},"att":"","flag":""},{"sid":"25081","name":"นาย ปริญน์ สนิทโกสัย","s":{},"att":"","flag":""},{"sid":"24979","name":"น.ส. ปุษยา บอนประโคน","s":{},"att":"","flag":""},{"sid":"25109","name":"น.ส. ณัฐนิชา จันทร์โยธา","s":{},"att":"","flag":""},{"sid":"24912","name":"นาย พีรพัฒน์ ทองประเสริฐ","s":{},"att":"","flag":""}],"ม.4/2":[{"sid":"25125","name":"นาย จิรวัฒน์ จันทร์เถื่อน","s":{},"att":"","flag":""},{"sid":"25903","name":"นาย ณัฐพล ทองกระศรี","s":{},"att":"","flag":""},{"sid":"25112","name":"นาย ณัฐภูมิ ภารเจิม","s":{},"att":"","flag":""},{"sid":"25128","name":"นาย ธัชพล มาธงชัย","s":{},"att":"","flag":""},{"sid":"25126","name":"นาย รัชชานนท์ ยะปะนันท์","s":{},"att":"","flag":""},{"sid":"24927","name":"นาย สมพงษ์ เจนหัต","s":{},"att":"","flag":""},{"sid":"25127","name":"น.ส. เบญญทิพย์ คาระวะ","s":{},"att":"","flag":""},{"sid":"24882","name":"นาย พงศกร ล้อมขุนทด","s":{},"att":"","flag":""},{"sid":"25089","name":"นาย ภาณุพงษ์ ปลั่งกลาง","s":{},"att":"","flag":""},{"sid":"25083","name":"น.ส. ไอลิน กำเนิดแก้ว","s":{},"att":"","flag":""}],"ม.4/1":[{"sid":"24924","name":"นาย เพชรอนันต์ ช่วยงาน","s":{},"att":"","flag":""},{"sid":"25123","name":"นาย อนุชิต เกิดจันทึก","s":{},"att":"","flag":""},{"sid":"25053","name":"น.ส. ณัฐธิดา มะเดื่อชุมพร","s":{},"att":"","flag":""},{"sid":"24945","name":"น.ส. ดวงกมล รังสี","s":{},"att":"","flag":""},{"sid":"24930","name":"น.ส. วันวิสา นาคพลกรัง","s":{},"att":"","flag":""},{"sid":"25124","name":"น.ส. ศิริรักษ์ ยุพัตร","s":{},"att":"","flag":""}],"ม.3/2":[{"sid":"24982","name":"ด.ช. กมลภพ จิตต์พิมาย","s":{},"att":"","flag":""},{"sid":"24984","name":"ด.ช. จิรพล ปทุมสูตร","s":{},"att":"","flag":""},{"sid":"24986","name":"ด.ช. ณวัฒน์ สุทธประเสริฐ","s":{},"att":"","flag":""},{"sid":"24987","name":"ด.ช. ทินภัทร วงสีสังข์","s":{},"att":"","flag":""},{"sid":"24994","name":"ด.ช. รัชพงศ์ ทองสมบูรณ์","s":{},"att":"","flag":""},{"sid":"24997","name":"ด.ช. วิสิฐพัฒน์ คงวัตร","s":{},"att":"","flag":""},{"sid":"24998","name":"ด.ช. วีระวุฒิ ศรีสุภา","s":{},"att":"","flag":""},{"sid":"24999","name":"ด.ช. ศุภกรณ์ ไทยจังหรีด","s":{},"att":"","flag":""},{"sid":"25000","name":"ด.ช. ศุภณัฏฐ์ อัครอุดมวิทย์","s":{},"att":"","flag":""},{"sid":"25001","name":"ด.ช. อนิวัต รักษาพงษ์","s":{},"att":"","flag":""},{"sid":"25022","name":"ด.ญ. นภัสนันท์ แช้นสีดา","s":{},"att":"","flag":""},{"sid":"25015","name":"ด.ญ. นวพรรษ แดงสุริยานุกูล","s":{},"att":"","flag":""},{"sid":"25012","name":"ด.ญ. ไอยวริญ ปรางปรุ","s":{},"att":"","flag":""},{"sid":"25040","name":"ด.ญ. นิยตา การบรรจง","s":{},"att":"","flag":""},{"sid":"25087","name":"ด.ช. ธัญเทพ มุ่งต่อกลาง","s":{},"att":"","flag":""},{"sid":"25062","name":"ด.ช. อติเทพ จันทร์เสาร์","s":{},"att":"","flag":""},{"sid":"25113","name":"ด.ญ. รัชนิณา ชาติภูมิ","s":{},"att":"","flag":""},{"sid":"25132","name":"ด.ช. วรชิต หวังต่อกลาง","s":{},"att":"","flag":""},{"sid":"25136","name":"ด.ช. ธาวิน กันยานัด","s":{},"att":"","flag":""}],"ม.3/1":[{"sid":"25016","name":"ด.ช. ชยกร พงษ์ศิริ","s":{},"att":"","flag":""},{"sid":"25020","name":"ด.ช. ชัยสิทธิ์ พินิจไชย","s":{},"att":"","flag":""},{"sid":"25013","name":"ด.ช. ณัช ตระกูลรัมย์","s":{},"att":"","flag":""},{"sid":"24989","name":"ด.ช. นนท์ณภัทร์ ช่องฉิมพลี","s":{},"att":"","flag":""},{"sid":"24990","name":"ด.ช. นนทนพงศ์ จักร์แก้ว (รร)","s":{},"att":"","flag":""},{"sid":"25019","name":"ด.ช. บวรวรรธน์ งามพลกรัง","s":{},"att":"","flag":""},{"sid":"25017","name":"ด.ช. พีรพัฒน์ สุขเกษม","s":{},"att":"","flag":""},{"sid":"24991","name":"ด.ช. พีรพัฒน์ ช้างคำ","s":{},"att":"","flag":""},{"sid":"24993","name":"ด.ช. มงคลชัย สมพันเพียง","s":{},"att":"","flag":""},{"sid":"24995","name":"ด.ช. รัฐภูมิ เกี้ยวสันเทียะ","s":{},"att":"","flag":""},{"sid":"25002","name":"ด.ช. อภิวัฒน์ วันจันทร์ (รร)","s":{},"att":"","flag":""},{"sid":"25003","name":"ด.ญ. กัญญา อินสันเทียะ","s":{},"att":"","flag":""},{"sid":"25005","name":"ด.ญ. พิมพิกา เรียงสีมา","s":{},"att":"","flag":""},{"sid":"25006","name":"ด.ญ. ฟ้าใส คำหนู","s":{},"att":"","flag":""},{"sid":"25009","name":"ด.ญ. ศริณย์พร สินปรุ","s":{},"att":"","flag":""},{"sid":"25011","name":"ด.ญ. สุรีย์นิภา มาตย์คำ (รร)","s":{},"att":"","flag":""},{"sid":"25036","name":"นาย กันตพิชญ์ สุขขุมนัย","s":{},"att":"","flag":""},{"sid":"25059","name":"ด.ญ. เกวลี นามแสง","s":{},"att":"","flag":""},{"sid":"25061","name":"ด.ช. ณราชล หิรัญจิราพัชร","s":{},"att":"","flag":""},{"sid":"24978","name":"ด.ช. สุวิทย์ สมบูรณ์","s":{},"att":"","flag":""},{"sid":"25080","name":"ด.ญ. เสาวลักษณ์ ภูมิขุนทด","s":{},"att":"","flag":""},{"sid":"25133","name":"ด.ช. ณัฐพัชน์ แก้วบุตรดีวงษ์","s":{},"att":"","flag":""},{"sid":"25134","name":"ด.ช. อัครเดช นามจันทร์","s":{},"att":"","flag":""}],"ม.2/1":[{"sid":"25063","name":"ด.ช. ชญานนท์ ศรีจันอัด","s":{},"att":"","flag":""},{"sid":"25064","name":"ด.ช. ไตรทศ นิ่มจ้อย","s":{},"att":"","flag":""},{"sid":"25065","name":"ด.ช. ธนโชติ มีบุญมาก","s":{},"att":"","flag":""},{"sid":"25066","name":"ด.ช. ธันวา ทานากลาง","s":{},"att":"","flag":""},{"sid":"25067","name":"ด.ช. พลภัทร กองจอหอ","s":{},"att":"","flag":""},{"sid":"25071","name":"ด.ช. ศุทธวีย์ สินปรุ","s":{},"att":"","flag":""},{"sid":"25072","name":"ด.ญ. กชพรรณ แนมผักแว่น","s":{},"att":"","flag":""},{"sid":"25073","name":"ด.ญ. เจนจิรา เจนไร่","s":{},"att":"","flag":""},{"sid":"25074","name":"ด.ญ. ฐานิดา บุญคำ","s":{},"att":"","flag":""},{"sid":"25075","name":"ด.ญ. ณิชากร จุลเวช","s":{},"att":"","flag":""},{"sid":"25076","name":"ด.ญ. ดาริกา เปรมชาติ","s":{},"att":"","flag":""},{"sid":"25077","name":"ด.ญ. นิสาพร ชมโคกสูง","s":{},"att":"","flag":""},{"sid":"25078","name":"ด.ญ. พัชรมน ความใหม่","s":{},"att":"","flag":""},{"sid":"25079","name":"ด.ญ. รัตดา อาญาเมือง","s":{},"att":"","flag":""},{"sid":"25086","name":"ด.ช. กนกฉัตร นรสาร","s":{},"att":"","flag":""},{"sid":"24996","name":"ด.ช. วันดี คำโสภา","s":{},"att":"","flag":""},{"sid":"25107","name":"ด.ช. กฤษฎา ลือาจ","s":{},"att":"","flag":""},{"sid":"25131","name":"ด.ญ. วิภาพร แสงวิลัย","s":{},"att":"","flag":""},{"sid":"25129","name":"ด.ญ. ธมลวรรณ ทองหมื่นไวย","s":{},"att":"","flag":""},{"sid":"25140","name":"ด.ญ. กุลภรณ์ เดี่ยววณิชย์","s":{},"att":"","flag":""}],"ม.1/1":[{"sid":"25115","name":"ด.ช. ชัยสิทธิ์ ศรีวิจารณ์","s":{},"att":"","flag":""},{"sid":"25116","name":"ด.ญ. กมลรัตน์ เรืองศรี","s":{},"att":"","flag":""},{"sid":"25117","name":"ด.ญ. กัญญาณัฐ เรียบกระโทก","s":{},"att":"","flag":""},{"sid":"25118","name":"ด.ญ. ชยุดา หิงพุดซา","s":{},"att":"","flag":""},{"sid":"25119","name":"ด.ญ. เปรมสุดา อุณาพรม","s":{},"att":"","flag":""},{"sid":"25120","name":"ด.ญ. สาวิตรี ชาติสำโรง","s":{},"att":"","flag":""},{"sid":"25122","name":"ด.ญ. สุพรรษา เวกสูงเนิน","s":{},"att":"","flag":""},{"sid":"25135","name":"ด.ญ. อาภัสรา เพ็ชรกำเนิด","s":{},"att":"","flag":""},{"sid":"25138","name":"ด.ช. กฤษณะ มะสันเทียะ","s":{},"att":"","flag":""}]};
+const STUDENT_SEED_KEY="scoreapp_students_seed_v1";
 const SYNC0={mode:"firebase",url:"https://classroonscore-default-rtdb.asia-southeast1.firebasedatabase.app",key:"",room:"school-main",device:"",auto:true,rev:0,lastRemoteRev:0,lastPush:0,lastPull:0};
 let db={cfg:{items:JSON.parse(JSON.stringify(DEF)),attMin:80,school:"",teacher:"",term:""},
- sec:{...SEC0},sync:{...SYNC0},classes:{},trash:[],log:[],updatedAt:0};
+ sec:{...SEC0},sync:{...SYNC0},classes:JSON.parse(JSON.stringify(START_CLASSES)),trash:[],log:[],updatedAt:0};
 let lvl=1,room=1,cur="",pending=null,sort={k:"no",d:1},saveT,pushT;
 let locked=false,pinMode="",pinCb=null,tmpPin="",idleT,busy=false,pushInFlight=false,pullInFlight=false,pullT,dirtyPush=false;
 const $=id=>document.getElementById(id);
@@ -749,6 +810,7 @@ function load(){try{const r=JSON.parse(localStorage.getItem("scoreV5"));
   db.sec={...SEC0,...(r.sec||{})};db.sync={...SYNC0,...(r.sync||{})};
   db.trash=r.trash||[];db.log=r.log||[]}}catch(e){}
  if(!db.sync.url){db.sync.mode="firebase";db.sync.url="https://classroonscore-default-rtdb.asia-southeast1.firebasedatabase.app";db.sync.room=db.sync.room||"school-main"}
+ if(!localStorage.getItem(STUDENT_SEED_KEY)){localStorage.setItem(STUDENT_SEED_KEY,"1")}
  db.trash=db.trash.filter(t=>t.at>Date.now()-30*864e5);
  if(!db.sync.device)db.sync.device=navigator.platform||"เครื่องนี้"}
 function save(){clearTimeout(saveT);saveT=setTimeout(()=>{saveT=null;db.updatedAt=Date.now();
