@@ -880,7 +880,15 @@ function cloudURL(read){
 }
 function syncHead(){const h={"Content-Type":"application/json"};if(db.sync.mode==="jsonbin"&&db.sync.key)h["X-Master-Key"]=db.sync.key;return h}
 function setBusy(b,txt){busy=b;$("syncBtn").className="icon-btn"+(b?" busy":(db.sync.mode!=="off"?" syncon":""));if(txt)toast(txt)}
-function envelope(){return{rev:(db.sync.rev||0)+1,updatedAt:Date.now(),device:db.sync.device,payload:{cfg:db.cfg,classes:db.classes,trash:db.trash,log:db.log,sec:{on:db.sec.on,hash:db.sec.hash,salt:db.sec.salt,rec:db.sec.rec,idle:db.sec.idle,ro:db.sec.ro,lockNames:db.sec.lockNames}}}}
+/* Firebase ห้ามใช้ . # $ / [ ] ในชื่อคีย์ จึงเข้ารหัสชื่อห้องเฉพาะตอนส่งขึ้นคลาวด์ */
+const fbClassKey=k=>"__k_"+[...new TextEncoder().encode(String(k))].map(x=>x.toString(16).padStart(2,"0")).join("");
+function fbClassKeyDecode(k){
+ if(typeof k!=="string"||!/^__k_(?:[0-9a-f]{2})+$/i.test(k))return k;
+ try{return new TextDecoder().decode(new Uint8Array((k.slice(4).match(/../g)||[]).map(x=>parseInt(x,16))))}catch(e){return k}
+}
+const encodeClasses=c=>Object.fromEntries(Object.entries(c||{}).map(([k,v])=>[fbClassKey(k),v]));
+const decodeClasses=c=>Object.fromEntries(Object.entries(c||{}).map(([k,v])=>[fbClassKeyDecode(k),v]));
+function envelope(){return{rev:(db.sync.rev||0)+1,updatedAt:Date.now(),device:db.sync.device,payload:{cfg:db.cfg,classes:encodeClasses(db.classes),trash:db.trash,log:db.log,sec:{on:db.sec.on,hash:db.sec.hash,salt:db.sec.salt,rec:db.sec.rec,idle:db.sec.idle,ro:db.sec.ro,lockNames:db.sec.lockNames}}}}
 function firebaseConfig(){
  const s=db.sync;
  return {apiKey:s.apiKey||"",authDomain:s.authDomain||((s.projectId||"")+".firebaseapp.com"),projectId:s.projectId||"",databaseURL:s.url||""};
@@ -958,7 +966,7 @@ function applyRemote(d){
  const p=d.payload||{},keepRec=db.sec.recPlain;
  db.cfg=p.cfg||db.cfg;
  // สำคัญ: ไม่ยอมให้ payload ว่างมาทับรายชื่อที่มีอยู่ในเครื่อง
- const incoming=p.classes||{};
+ const incoming=decodeClasses(p.classes||{});
  Object.keys(incoming).forEach(k=>{if(Array.isArray(incoming[k])&&incoming[k].length)db.classes[k]=incoming[k]});
  db.trash=p.trash||db.trash;db.log=p.log||db.log;
  if(p.sec&&p.sec.hash)db.sec={...db.sec,...p.sec,recPlain:keepRec};
@@ -966,7 +974,7 @@ function applyRemote(d){
  localStorage.setItem("scoreV5",JSON.stringify(db));$("term").value=db.cfg.term||"";render();
 }
 function mergeRemote(d,pushBack=false){
- const R=d.payload.classes||{};const idx=s=>((s.sid&&String(s.sid).trim())||("n:"+(s.name||"").trim()));const cnt=s=>Object.values(s.s||{}).filter(v=>v!==""&&v!=null).length;
+ const R=decodeClasses(d.payload.classes||{});const idx=s=>((s.sid&&String(s.sid).trim())||("n:"+(s.name||"").trim()));const cnt=s=>Object.values(s.s||{}).filter(v=>v!==""&&v!=null).length;
  const before=+db.updatedAt||0,remoteAt=+d.updatedAt||0;
  Object.keys(R).forEach(k=>{const L=db.classes[k]=db.classes[k]||[],map=new Map(L.map(s=>[idx(s),s]));R[k].forEach(rs=>{const key=idx(rs),ls=map.get(key);if(!ls){L.push(rs);map.set(key,rs)}else if(cnt(rs)>cnt(ls)||remoteAt>=before){Object.assign(ls,rs)}})});
  db.trash=[...db.trash,...(d.payload.trash||[])].filter((t,i,a)=>a.findIndex(x=>x.id===t.id)===i);db.log=[...db.log,...(d.payload.log||[])].sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,250);db.sync.lastRemoteRev=d.rev||db.sync.lastRemoteRev||0;db.sync.lastPull=remoteAt||Date.now();db.updatedAt=Math.max(before,remoteAt);localStorage.setItem("scoreV5",JSON.stringify(db));render();if(pushBack)cloudPush(true)
