@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ระบบกรอกคะแนน • วิชาคอมพิวเตอร์ v5 (ล็อกชื่อ + ซิงก์คลาวด์)</title>
+<title>ระบบกรอกคะแนน • วิชาคอมพิวเตอร์ v6 (Real-time + Mobile)</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ================= UI OVERHAUL ================= */
@@ -593,6 +593,38 @@ button, input, select, textarea { touch-action: manipulation; }
   .rep-grid div { padding: 13px; }
 }
 
+/* ===== REALTIME SCORE + MOBILE V6 ===== */
+.score-live { position:relative; }
+@keyframes scorePulse { 0%{box-shadow:0 0 0 0 rgba(32,185,210,.45)} 100%{box-shadow:0 0 0 7px rgba(32,185,210,0)} }
+td input[data-f^="s:"]:focus, td input[data-f="att"]:focus { animation:scorePulse .55s ease-out; }
+@media(max-width:680px){
+  .tbl-wrap{border-radius:13px;scrollbar-width:thin;}
+  table{min-width:760px;}
+  thead th{font-size:11px;padding:10px 6px;}
+  tbody td{padding:6px 5px;}
+  td input,td select{min-height:46px;padding:8px 4px;font-size:17px;}
+  td input[data-f^="s:"]{width:64px;min-width:64px;font-weight:700;}
+  td input[data-f="att"]{width:64px;min-width:64px;font-weight:700;}
+  td input.txt{min-width:105px;width:105px;font-size:15px;}
+  .sum{font-size:14px;min-width:58px;}
+  .pill{min-width:48px;padding:6px 8px;}
+  .tbl-wrap table th:nth-child(3),.tbl-wrap table td:nth-child(3){
+    position:sticky;left:38px;z-index:3;background:var(--card);
+  }
+  .tbl-wrap table thead th:nth-child(3){background:var(--soft);}
+  .tbl-wrap table th:nth-child(1),.tbl-wrap table td:nth-child(1){
+    position:sticky;left:0;z-index:4;background:var(--card);
+  }
+  .tbl-wrap table thead th:nth-child(1){background:var(--soft);}
+  .tbl-wrap table td:nth-child(1){min-width:38px;}
+  .tbl-wrap table td:nth-child(2){min-width:82px;}
+  .bar .btn{min-height:46px;}
+}
+@media(max-width:380px){
+  table{min-width:720px;}
+  td input[data-f^="s:"],td input[data-f="att"]{width:58px;min-width:58px;}
+  td input.txt{min-width:94px;width:94px;}
+}
 </style>
 </head>
 <body>
@@ -814,7 +846,7 @@ const SYNC0={mode:"firebase",url:"https://classroonscore-default-rtdb.asia-south
 let db={cfg:{items:JSON.parse(JSON.stringify(DEF)),attMin:80,school:"",teacher:"",term:""},
  sec:{...SEC0},sync:{...SYNC0},classes:JSON.parse(JSON.stringify(START_CLASSES)),trash:[],log:[],updatedAt:0};
 let lvl=1,room=1,cur="",pending=null,sort={k:"no",d:1},saveT,pushT;
-let locked=false,pinMode="",pinCb=null,tmpPin="",idleT,busy=false,pushInFlight=false,pullInFlight=false,pullT,streamRetryT,realtimeStream=null,streamConnected=false,dirtyPush=false;
+let locked=false,pinMode="",pinCb=null,tmpPin="",idleT,busy=false,pushInFlight=false,pullInFlight=false,pullT,streamRetryT,realtimeStream=null,streamConnected=false,dirtyPush=false,realtimePatchT={};
 const $=id=>document.getElementById(id);
 const K=()=>`ม.${lvl}/${room}`, cls=()=>db.classes[cur]||[];
 const now=()=>new Date().toLocaleString("th-TH",{dateStyle:"short",timeStyle:"short"});
@@ -881,8 +913,30 @@ async function cloudPush(silent){
  catch(e){dirtyPush=true;if(!silent)toast("อัปโหลดไม่สำเร็จ — "+e.message)}
  finally{pushInFlight=false;setBusy(false);secUI();if(dirtyPush)autoPush()}}
 
+async function realtimePatchField(i,f,value){
+ if(db.sync.mode!=="firebase"||!db.sync.auto)return;
+ const s=db.sync;if(!s.room||!s.url)return;
+ let key=f,container="s";
+ if(f==="att"){container=null}
+ else if(f==="name"||f==="sid"){container=null}
+ else if(f.startsWith("s:"))key=f.slice(2);
+ else return;
+ const base=(s.url||"").trim().replace(/\\/+$/,"");
+ const path=`${base}/scoreapp/${encodeURIComponent(s.room)}/payload/classes/${encodeURIComponent(cur)}/${i}/${container?container+"/":""}${encodeURIComponent(key)}.json`+(s.key?`?auth=${encodeURIComponent(s.key)}`:"");
+ try{
+  await fetch(path,{method:"PUT",headers:syncHead(),body:JSON.stringify(value===undefined?null:value),keepalive:true});
+ }catch(_){}
+}
+function queueRealtimePatch(i,f,value){
+ if(db.sync.mode!=="firebase"||!db.sync.auto)return;
+ const key=`${cur}|${i}|${f}`;
+ clearTimeout(realtimePatchT[key]);
+ realtimePatchT[key]=setTimeout(()=>{
+  delete realtimePatchT[key];realtimePatchField(i,f,value);
+ },90);
+}
 function autoPush(){if(!db.sync.auto||db.sync.mode==="off")return;
- clearTimeout(pushT);pushT=setTimeout(()=>cloudPush(true),1000)}
+ clearTimeout(pushT);pushT=setTimeout(()=>cloudPush(true),300)}
 
 async function fetchRemote(){
  const url=cloudURL(true);if(!url)throw new Error("ยังตั้งค่าไม่ครบ");
@@ -893,7 +947,7 @@ async function fetchRemote(){
  if(!d||!d.payload)throw new Error("ยังไม่มีข้อมูลบนคลาวด์");
  return d}
 
-async function cloudPull(silent){
+async function cloudPull(silent,forceRealtime=false){
  if(db.sync.mode==="off")return silent||toast("ยังไม่ได้เปิดการซิงก์");
  if(pullInFlight)return;
  pullInFlight=true;
@@ -904,8 +958,8 @@ async function cloudPull(silent){
   if(!localCount){applyRemote(d);return toast(`ดึงข้อมูลสำเร็จ — ${remoteCount} คน`)}
   const remoteRev=+d.rev||0,seenRev=+db.sync.lastRemoteRev||0,remoteAt=+d.updatedAt||0;
   const seenAt=+db.sync.lastPull||0;
-  if(silent&&((remoteRev&&remoteRev<=seenRev)||(!remoteRev&&remoteAt<=seenAt)))return;
-  if(silent&&remoteAt>=(+db.updatedAt||0)){
+  if(silent&&!forceRealtime&&((remoteRev&&remoteRev<=seenRev)||(!remoteRev&&remoteAt<=seenAt)))return;
+  if(forceRealtime|| (silent&&remoteAt>=(+db.updatedAt||0))){
    applyRemote(d);return toast(`พบข้อมูลใหม่จากคลาวด์ — ${remoteCount} คน`)}
   askChoice(`<b>พบข้อมูลบนคลาวด์</b><br>
    <div style="text-align:left;font-size:12.5px;margin-top:10px;line-height:1.9">
@@ -1000,7 +1054,7 @@ function startRealtime(){
  try{
   realtimeStream=new EventSource(cloudURL(true));
   realtimeStream.addEventListener("put",e=>{try{const x=JSON.parse(e.data);if(x.path==="/"||x.path==="")receiveRealtime(x.data)}catch(_) {}});
-  realtimeStream.addEventListener("patch",e=>{try{const x=JSON.parse(e.data);if(x.path==="/"||x.path==="")receiveRealtime(x.data);else cloudPull(true)}catch(_) {}});
+  realtimeStream.addEventListener("patch",e=>{try{const x=JSON.parse(e.data);if(x.path==="/"||x.path==="")receiveRealtime(x.data);else cloudPull(true,true)}catch(_) {}});
   realtimeStream.onopen=()=>{streamConnected=true;clearTimeout(pullT);secUI()};
   realtimeStream.onerror=()=>{streamConnected=false;closeRealtime();streamRetryT=setTimeout(startRealtime,5000);scheduleAutoPull();secUI()};
  }catch(_){scheduleAutoPull()}
@@ -1019,7 +1073,7 @@ function secUI(){
   `<span class="chip">${db.sec.on?(locked?"🔒 ล็อกอยู่":"🔓 ปลดล็อกชั่วคราว"):"⚠️ ยังไม่ได้ตั้งรหัส PIN"}</span>`+
   (nameLocked()?`<span class="chip">🛡️ ชื่อนักเรียนถูกป้องกัน</span>`:"")+
   (db.sec.ro&&locked?`<span class="chip">👁️ อ่านอย่างเดียว</span>`:"")+
-  `<span class="chip act" onclick="openSync()">${db.sync.mode==="off"?"☁️ ยังไม่ได้เปิดซิงก์ — กดตั้งค่า":"☁️ ซิงก์: "+db.sync.room+" · ล่าสุด "+fmt(db.sync.lastPush)}</span>`+
+  `<span class="chip act" onclick="openSync()">${db.sync.mode==="off"?"☁️ ยังไม่ได้เปิดซิงก์ — กดตั้งค่า":"⚡ Real-time: "+db.sync.room+" · ล่าสุด "+fmt(db.sync.lastPush)}</span>`+
   `<span class="chip act" onclick="openTrash()">🗑️ ถังขยะ ${db.trash.length}</span>`+
   (db.sec.on?"":`<span class="chip act" onclick="setupPin()">👉 ตั้งรหัสตอนนี้</span>`)}
 const nameLocked=()=>db.sec.on&&locked&&db.sec.lockNames;
@@ -1205,11 +1259,12 @@ $("tbody").addEventListener("input",e=>{
   if(el.value===""){n=""}else if(isNaN(n)){return}
   else{n=Math.min(Math.max(n,0),mx);if(n!=el.value&&el.value.slice(-1)!==".")el.value=n}
   if(f==="att")s.att=n;else{s.s=s.s||{};s.s[f.split(":")[1]]=n}}
+ queueRealtimePatch(+el.dataset.i,f,(f==="sid"||f==="name")?el.value:(f==="att"?s.att:s.s?.[f.split(":")[1]]));
  save();refreshCalc()});
 
 $("tbody").addEventListener("change",e=>{
  const el=e.target;
- if(el.tagName==="SELECT"){cls()[+el.dataset.i].flag=el.value;saveNow();render();return}
+ if(el.tagName==="SELECT"){cls()[+el.dataset.i].flag=el.value;queueRealtimePatch(+el.dataset.i,"flag",el.value);saveNow();render();return}
  const f=el.dataset.f;
  if((f==="name"||f==="sid")&&el.dataset.old!==undefined&&el.dataset.old!==el.value){
   addLog(f==="name"?"แก้ไขชื่อนักเรียน":"แก้ไขรหัสนักเรียน",
