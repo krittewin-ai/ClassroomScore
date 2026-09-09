@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="th" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ระบบตรวจสอบคะแนนวิชาคอมพิวเตอร์</title>
+<title>ระบบกรอกคะแนน • วิชาคอมพิวเตอร์ v5 (ล็อกชื่อ + ซิงก์คลาวด์)</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ================= UI OVERHAUL ================= */
@@ -512,7 +513,7 @@ td input:focus, td select:focus { box-shadow: 0 0 0 4px rgba(105,86,232,.14); }
 <div class="wrap">
  <div class="hero">
   <div class="hero-in">
-   <div><h1>💻 ระบบตรวจสอบคะแนน <span style="font-weight:400;opacity:.84">วิชาคอมพิวเตอร์</span></h1>
+   <div><h1>💻 ระบบกรอกคะแนน <span style="font-weight:400;opacity:.84">วิชาคอมพิวเตอร์</span></h1>
    <p>ม.1–ม.6 · ปกป้องข้อมูล · ซิงก์คะแนนข้ามเครื่องด้วย Firebase</p></div>
    <div style="display:flex;gap:10px;align-items:center">
     <div class="badge-term">📅 ภาคเรียน <input id="term" placeholder="1/2569"></div>
@@ -646,7 +647,7 @@ td input:focus, td select:focus { box-shadow: 0 0 0 4px rgba(105,86,232,.14); }
  <div class="frow"><label>รหัสห้องข้อมูล</label><input id="syRoom" placeholder="เช่น TCH-A1B2">
   <button class="btn ghost sm" onclick="genRoom()">สุ่ม</button></div>
  <div class="frow"><label>ชื่อเครื่องนี้</label><input id="syDev" placeholder="เช่น คอมที่โรงเรียน"></div>
- <div class="sw"><div><b>ซิงก์อัตโนมัติ</b><small>อัปโหลดเองหลังแก้ไข และดึงข้อมูลเมื่อเปิดเว็บ</small></div>
+  <div class="sw"><div><b>ซิงก์อัตโนมัติ</b><small>อัปโหลดหลังแก้ไข และตรวจข้อมูลใหม่ทุก 10 วินาที</small></div>
   <button class="tg" id="tgAuto" onclick="toggleAuto()"></button></div>
  <div id="syInfo" style="font-size:12px;color:var(--muted);margin:12px 0;line-height:1.8"></div>
  <div class="bar" style="margin-top:6px">
@@ -721,11 +722,11 @@ td input:focus, td select:focus { box-shadow: 0 0 0 4px rgba(105,86,232,.14); }
 const DEF=[{id:"c1",name:"หน่วยที่ 1",max:20},{id:"c2",name:"หน่วยที่ 2",max:20},
 {id:"c3",name:"ชิ้นงาน",max:20},{id:"mid",name:"กลางภาค",max:20},{id:"fin",name:"ปลายภาค",max:20}];
 const SEC0={on:false,hash:"",salt:"",rec:"",recPlain:"",idle:10,ro:false,lockNames:true};
-const SYNC0={mode:"firebase",url:"https://classroonscore-default-rtdb.asia-southeast1.firebasedatabase.app",key:"",room:"school-main",device:"",auto:true,rev:0,lastPush:0,lastPull:0};
+const SYNC0={mode:"firebase",url:"https://classroonscore-default-rtdb.asia-southeast1.firebasedatabase.app",key:"",room:"school-main",device:"",auto:true,rev:0,lastRemoteRev:0,lastPush:0,lastPull:0};
 let db={cfg:{items:JSON.parse(JSON.stringify(DEF)),attMin:80,school:"",teacher:"",term:""},
  sec:{...SEC0},sync:{...SYNC0},classes:{},trash:[],log:[],updatedAt:0};
 let lvl=1,room=1,cur="",pending=null,sort={k:"no",d:1},saveT,pushT;
-let locked=false,pinMode="",pinCb=null,tmpPin="",idleT,busy=false;
+let locked=false,pinMode="",pinCb=null,tmpPin="",idleT,busy=false,pushInFlight=false,pullInFlight=false,pullT,dirtyPush=false;
 const $=id=>document.getElementById(id);
 const K=()=>`ม.${lvl}/${room}`, cls=()=>db.classes[cur]||[];
 const now=()=>new Date().toLocaleString("th-TH",{dateStyle:"short",timeStyle:"short"});
@@ -750,9 +751,9 @@ function load(){try{const r=JSON.parse(localStorage.getItem("scoreV5"));
  if(!db.sync.url){db.sync.mode="firebase";db.sync.url="https://classroonscore-default-rtdb.asia-southeast1.firebasedatabase.app";db.sync.room=db.sync.room||"school-main"}
  db.trash=db.trash.filter(t=>t.at>Date.now()-30*864e5);
  if(!db.sync.device)db.sync.device=navigator.platform||"เครื่องนี้"}
-function save(){clearTimeout(saveT);saveT=setTimeout(()=>{db.updatedAt=Date.now();
- localStorage.setItem("scoreV5",JSON.stringify(db));autoPush()},250)}
-function saveNow(msg){db.updatedAt=Date.now();localStorage.setItem("scoreV5",JSON.stringify(db));
+function save(){clearTimeout(saveT);saveT=setTimeout(()=>{saveT=null;db.updatedAt=Date.now();
+ localStorage.setItem("scoreV5",JSON.stringify(db));dirtyPush=true;autoPush()},250)}
+function saveNow(msg){db.updatedAt=Date.now();localStorage.setItem("scoreV5",JSON.stringify(db));dirtyPush=true;
  if(msg)toast(msg);autoPush()}
 function addLog(act,detail){db.log.unshift({at:now(),ts:Date.now(),act,detail,dev:db.sync.device});db.log=db.log.slice(0,250)}
 
@@ -777,15 +778,18 @@ function envelope(){return{rev:(db.sync.rev||0)+1,updatedAt:Date.now(),device:db
 async function cloudPush(silent){
  const s=db.sync;if(s.mode==="off")return silent||toast("ยังไม่ได้เปิดการซิงก์ — กด ☁️ เพื่อตั้งค่า");
  const url=cloudURL();if(!url)return silent||toast("ตั้งค่า URL หรือรหัสห้องข้อมูลยังไม่ครบ");
- const doc=envelope();setBusy(true);
+ if(pushInFlight){dirtyPush=true;return}
+ const doc=envelope();pushInFlight=true;dirtyPush=false;setBusy(true);
  try{const r=await fetch(url,{method:"PUT",headers:syncHead(),body:JSON.stringify(doc)});
   if(!r.ok)throw new Error("HTTP "+r.status);
-  s.rev=doc.rev;s.lastPush=doc.updatedAt;localStorage.setItem("scoreV5",JSON.stringify(db));
-  setBusy(false);secUI();if(!silent)toast("อัปโหลดขึ้นคลาวด์แล้ว ✔")}
- catch(e){setBusy(false);if(!silent)toast("อัปโหลดไม่สำเร็จ — "+e.message)}}
+  s.rev=doc.rev;s.lastRemoteRev=doc.rev;s.lastPush=doc.updatedAt;s.lastPull=doc.updatedAt;
+  localStorage.setItem("scoreV5",JSON.stringify(db));
+  if(!silent)toast("อัปโหลดขึ้นคลาวด์แล้ว ✔")}
+ catch(e){dirtyPush=true;if(!silent)toast("อัปโหลดไม่สำเร็จ — "+e.message)}
+ finally{pushInFlight=false;setBusy(false);secUI();if(dirtyPush)autoPush()}}
 
 function autoPush(){if(!db.sync.auto||db.sync.mode==="off")return;
- clearTimeout(pushT);pushT=setTimeout(()=>cloudPush(true),6000)}
+ clearTimeout(pushT);pushT=setTimeout(()=>cloudPush(true),1000)}
 
 async function fetchRemote(){
  const url=cloudURL(true);if(!url)throw new Error("ยังตั้งค่าไม่ครบ");
@@ -798,12 +802,18 @@ async function fetchRemote(){
 
 async function cloudPull(silent){
  if(db.sync.mode==="off")return silent||toast("ยังไม่ได้เปิดการซิงก์");
+ if(pullInFlight)return;
+ pullInFlight=true;
  setBusy(true);
- try{const d=await fetchRemote();setBusy(false);
+ try{const d=await fetchRemote();
   const localCount=Object.values(db.classes).reduce((a,v)=>a+v.length,0);
   const remoteCount=Object.values(d.payload.classes||{}).reduce((a,v)=>a+v.length,0);
   if(!localCount){applyRemote(d);return toast(`ดึงข้อมูลสำเร็จ — ${remoteCount} คน`)}
-  if(silent&&d.updatedAt<=(db.sync.lastPull||0)&&d.updatedAt<=db.updatedAt)return;
+  const remoteRev=+d.rev||0,seenRev=+db.sync.lastRemoteRev||0,remoteAt=+d.updatedAt||0;
+  const seenAt=+db.sync.lastPull||0;
+  if(silent&&((remoteRev&&remoteRev<=seenRev)||(!remoteRev&&remoteAt<=seenAt)))return;
+  if(silent&&remoteAt>=(+db.updatedAt||0)){
+   applyRemote(d);return toast(`พบข้อมูลใหม่จากคลาวด์ — ${remoteCount} คน`)}
   askChoice(`<b>พบข้อมูลบนคลาวด์</b><br>
    <div style="text-align:left;font-size:12.5px;margin-top:10px;line-height:1.9">
    ☁️ คลาวด์ — ${remoteCount} คน · แก้ล่าสุด ${fmt(d.updatedAt)}<br>
@@ -811,13 +821,14 @@ async function cloudPull(silent){
    [["ใช้ของคลาวด์","btn cy",()=>{applyRemote(d);toast("ใช้ข้อมูลจากคลาวด์แล้ว")}],
     ["รวมข้อมูล","btn ok",()=>{mergeRemote(d);toast("รวมข้อมูลเรียบร้อย")}],
     ["ใช้ของเครื่องนี้","btn ghost",()=>{cloudPush();toast("อัปโหลดทับคลาวด์แล้ว")}]])}
- catch(e){setBusy(false);if(!silent)toast("ดึงข้อมูลไม่สำเร็จ — "+e.message)}}
+ catch(e){if(!silent)toast("ดึงข้อมูลไม่สำเร็จ — "+e.message)}
+ finally{pullInFlight=false;setBusy(false);secUI();scheduleAutoPull()}}
 
 function applyRemote(d){
  const p=d.payload,keepRec=db.sec.recPlain;
  db.cfg=p.cfg||db.cfg;db.classes=p.classes||{};db.trash=p.trash||[];db.log=p.log||[];
  if(p.sec&&p.sec.hash)db.sec={...db.sec,...p.sec,recPlain:keepRec};
- db.sync.rev=d.rev||0;db.sync.lastPull=Date.now();db.updatedAt=d.updatedAt||Date.now();
+ db.sync.rev=d.rev||0;db.sync.lastRemoteRev=d.rev||0;db.sync.lastPull=d.updatedAt||Date.now();db.updatedAt=d.updatedAt||Date.now();
  addLog("ดึงข้อมูลจากคลาวด์",`จากเครื่อง ${d.device||"-"}`);
  locked=!!db.sec.on;localStorage.setItem("scoreV5",JSON.stringify(db));$("term").value=db.cfg.term||"";render()}
 
@@ -833,7 +844,7 @@ function mergeRemote(d){
  db.trash=[...db.trash,...(d.payload.trash||[])].filter((t,i,a)=>a.findIndex(x=>x.id===t.id)===i);
  db.log=[...db.log,...(d.payload.log||[])].sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,250);
  addLog("รวมข้อมูลกับคลาวด์",`จากเครื่อง ${d.device||"-"}`);
- db.sync.lastPull=Date.now();saveNow();render();cloudPush(true)}
+ db.sync.lastRemoteRev=d.rev||db.sync.lastRemoteRev||0;db.sync.lastPull=d.updatedAt||Date.now();saveNow();render();cloudPush(true)}
 
 async function testConn(){
  readSyncForm();if(db.sync.mode==="off")return toast("เลือกบริการก่อน");
@@ -865,9 +876,11 @@ function genRoom(){$("syRoom").value="TCH-"+rndCode(8,4)}
 function toggleAuto(){db.sync.auto=!db.sync.auto;$("tgAuto").className="tg"+(db.sync.auto?" on":"")}
 function saveSync(){readSyncForm();
  if(db.sync.mode!=="off"&&!db.sync.room)return toast("กรุณาใส่รหัสห้องข้อมูล");
- saveNow("บันทึกการตั้งค่าซิงก์แล้ว");closeSync();secUI()}
+ saveNow("บันทึกการตั้งค่าซิงก์แล้ว");closeSync();secUI();scheduleAutoPull()}
 function shareRoom(){const t=`URL: ${$("syURL").value}\nรหัสห้องข้อมูล: ${$("syRoom").value}`;
  navigator.clipboard?.writeText(t).then(()=>toast("คัดลอกแล้ว นำไปกรอกที่เครื่องอื่นได้เลย"),()=>toast(t))}
+function scheduleAutoPull(){clearTimeout(pullT);
+ if(db.sync.auto&&db.sync.mode!=="off")pullT=setTimeout(()=>cloudPull(true),10000)}
 addEventListener("focus",()=>{if(db.sync.auto&&db.sync.mode!=="off")cloudPull(true)});
 
 /* ================= ระบบล็อก ================= */
@@ -1315,10 +1328,13 @@ $("term").addEventListener("input",e=>{db.cfg.term=e.target.value;save()});
  .forEach(([id,fn])=>$(id).addEventListener("click",e=>{if(e.target.id===id)fn()}));
 addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();closeSettings();closeDash();closeRep();
  closeTrash();closeLog();closeSync();closePin()}});
-addEventListener("beforeunload",()=>{if(db.sync.auto&&db.sync.mode!=="off")
- try{navigator.sendBeacon&&0}catch(e){}});
+addEventListener("beforeunload",()=>{
+ if(saveT){clearTimeout(saveT);saveT=null;db.updatedAt=Date.now();localStorage.setItem("scoreV5",JSON.stringify(db));dirtyPush=true}
+ if(!dirtyPush||!db.sync.auto||db.sync.mode==="off")return;
+ try{const url=cloudURL();if(url)fetch(url,{method:"PUT",headers:syncHead(),body:JSON.stringify(envelope()),keepalive:true})}catch(e){}
+});
 load();locked=!!db.sec.on;$("term").value=db.cfg.term||"";render();
-if(db.sync.auto&&db.sync.mode!=="off")setTimeout(()=>cloudPull(true),800);
+if(db.sync.auto&&db.sync.mode!=="off"){setTimeout(()=>cloudPull(true),800);scheduleAutoPull()}
 </script>
 </body>
 </html>
