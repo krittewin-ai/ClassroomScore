@@ -493,6 +493,18 @@ td input:focus, td select:focus { box-shadow: 0 0 0 4px rgba(105,86,232,.14); }
   .bar .btn { padding: 10px 12px; font-size: 13px; }
   .tbl-wrap { margin: 0 -2px; }
 }
+.contact-card { position: relative; overflow: hidden; background: linear-gradient(135deg, rgba(41,35,105,.98), rgba(78,60,171,.95) 56%, rgba(20,158,181,.92)); color: #fff; border: 0; box-shadow: 0 20px 44px rgba(63,52,157,.22); }
+.contact-card::before { content: ""; position: absolute; width: 220px; height: 220px; right: -74px; top: -100px; border: 1px solid rgba(255,255,255,.22); border-radius: 50%; box-shadow: 0 0 0 22px rgba(255,255,255,.035), 0 0 0 46px rgba(255,255,255,.025); }
+.contact-card h3, .contact-card p { color: #fff; position: relative; }
+.contact-card .contact-sub { color: rgba(255,255,255,.72); font-size: 13px; margin: -10px 0 18px 20px; position: relative; }
+.contact-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; position: relative; }
+.contact-link { display: flex; align-items: center; gap: 10px; min-height: 62px; padding: 12px 14px; border: 1px solid rgba(255,255,255,.19); border-radius: 15px; background: rgba(255,255,255,.11); color: #fff; text-decoration: none; transition: .22s ease; backdrop-filter: blur(10px); }
+.contact-link:hover { transform: translateY(-3px); background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.42); box-shadow: 0 10px 22px rgba(0,0,0,.12); }
+.contact-link .contact-icon { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 11px; background: rgba(255,255,255,.18); font-size: 18px; flex: none; overflow: hidden; }
+.contact-link .contact-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.contact-link b { display: block; font-size: 12px; opacity: .7; font-weight: 500; }
+.contact-link span { display: block; font-size: 13px; font-weight: 700; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media(max-width:680px) { .contact-grid { grid-template-columns: 1fr; } .contact-link { min-height: 56px; } }
 
 </style>
 </head>
@@ -562,6 +574,21 @@ td input:focus, td select:focus { box-shadow: 0 0 0 4px rgba(105,86,232,.14); }
     <div class="stats" id="stats"></div>
     <h3 style="margin:20px 0 12px"><span class="dot" style="background:var(--warn)"></span>การกระจายของเกรด</h3>
     <div class="dist" id="dist"></div>
+   </div>
+   <div class="card contact-card no-print">
+    <h3><span class="dot" style="background:#fff;box-shadow:0 0 10px rgba(255,255,255,.65)"></span>ติดต่อผู้ดูแลระบบ</h3>
+    <p class="contact-sub">หากพบปัญหาการใช้งานหรือมีข้อเสนอแนะ สามารถติดต่อได้ตามช่องทางด้านล่าง</p>
+    <div class="contact-grid">
+     <a class="contact-link" href="https://line.me/ti/p/~krittawinfash02" target="_blank" rel="noopener" title="เปิด LINE">
+      <span class="contact-icon"><img src="logo-line.jpg" alt="LINE"></span><span><b>LINE ID</b><span>krittawinfash02</span></span>
+     </a>
+     <a class="contact-link" href="https://www.facebook.com/search/top?q=Freshy%20Krittewin" target="_blank" rel="noopener" title="ค้นหา Facebook">
+      <span class="contact-icon"><img src="logo-facebook.jpg" alt="Facebook"></span><span><b>Facebook</b><span>Freshy Krittewin</span></span>
+     </a>
+     <a class="contact-link" href="tel:0855015600" title="โทรศัพท์">
+      <span class="contact-icon">📞</span><span><b>โทรศัพท์</b><span>085-501-5600</span></span>
+     </a>
+    </div>
    </div>
   </div>
  </div>
