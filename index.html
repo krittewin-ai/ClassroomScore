@@ -566,6 +566,33 @@ button, input, select, textarea { touch-action: manipulation; }
   .contact-link span { font-size: 12px; }
 }
 
+/* ===== 9:16 PORTRAIT PHONE LAYOUT ===== */
+@media screen and (max-width:680px) and (orientation:portrait) {
+  html, body { width: 100%; min-width: 320px; }
+  body { min-height: 177.78vw; padding: 6px; }
+  .hero { padding: 16px 12px 13px; border-radius: 18px; }
+  .hero-in { gap: 11px; }
+  .hero-in > div:first-child { width: 100%; }
+  .hero h1 { font-size: clamp(18px, 5.4vw, 22px); }
+  .hero h1 span { display: block; width: 100%; font-size: .78em; margin-top: 2px; }
+  .hero p { margin-top: 5px; }
+  .hero-in > div:last-child { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px !important; }
+  .badge-term { min-height: 42px; }
+  .hero .icon-btn { height: 42px; font-size: 17px; }
+  .secline .chip { font-size: 10.5px; }
+  .grid { display: flex; flex-direction: column; gap: 10px; }
+  .side { width: 100%; }
+  .side .card { margin-bottom: 10px; }
+  .side .card:nth-child(3) { margin-bottom: 0; }
+  .card { width: 100%; }
+  .card h3 { font-size: 14px; }
+  .bar .btn { min-height: 42px; }
+  .tbl-wrap { max-width: 100%; overscroll-behavior-x: contain; }
+  .modal .box { max-height: 88svh; }
+  .rep-grid { grid-template-columns: 1fr; gap: 8px; }
+  .rep-grid div { padding: 13px; }
+}
+
 </style>
 </head>
 <body>
@@ -787,7 +814,7 @@ const SYNC0={mode:"firebase",url:"https://classroonscore-default-rtdb.asia-south
 let db={cfg:{items:JSON.parse(JSON.stringify(DEF)),attMin:80,school:"",teacher:"",term:""},
  sec:{...SEC0},sync:{...SYNC0},classes:JSON.parse(JSON.stringify(START_CLASSES)),trash:[],log:[],updatedAt:0};
 let lvl=1,room=1,cur="",pending=null,sort={k:"no",d:1},saveT,pushT;
-let locked=false,pinMode="",pinCb=null,tmpPin="",idleT,busy=false,pushInFlight=false,pullInFlight=false,pullT,dirtyPush=false;
+let locked=false,pinMode="",pinCb=null,tmpPin="",idleT,busy=false,pushInFlight=false,pullInFlight=false,pullT,streamRetryT,realtimeStream=null,streamConnected=false,dirtyPush=false;
 const $=id=>document.getElementById(id);
 const K=()=>`ม.${lvl}/${room}`, cls=()=>db.classes[cur]||[];
 const now=()=>new Date().toLocaleString("th-TH",{dateStyle:"short",timeStyle:"short"});
@@ -810,7 +837,11 @@ function load(){try{const r=JSON.parse(localStorage.getItem("scoreV5"));
   db.sec={...SEC0,...(r.sec||{})};db.sync={...SYNC0,...(r.sync||{})};
   db.trash=r.trash||[];db.log=r.log||[]}}catch(e){}
  if(!db.sync.url){db.sync.mode="firebase";db.sync.url="https://classroonscore-default-rtdb.asia-southeast1.firebasedatabase.app";db.sync.room=db.sync.room||"school-main"}
- if(!localStorage.getItem(STUDENT_SEED_KEY)){localStorage.setItem(STUDENT_SEED_KEY,"1")}
+ const seeded=localStorage.getItem(STUDENT_SEED_KEY)==="1";
+ if(!seeded){Object.entries(START_CLASSES).forEach(([k,students])=>{
+  const list=db.classes[k]=db.classes[k]||[],ids=new Set(list.map(s=>String(s.sid||"")));
+  students.forEach(s=>{if(!ids.has(String(s.sid))){list.push(JSON.parse(JSON.stringify(s)));ids.add(String(s.sid))}})});
+  localStorage.setItem(STUDENT_SEED_KEY,"1");db.updatedAt=Date.now();localStorage.setItem("scoreV5",JSON.stringify(db))}
  db.trash=db.trash.filter(t=>t.at>Date.now()-30*864e5);
  if(!db.sync.device)db.sync.device=navigator.platform||"เครื่องนี้"}
 function save(){clearTimeout(saveT);saveT=setTimeout(()=>{saveT=null;db.updatedAt=Date.now();
@@ -938,11 +969,42 @@ function genRoom(){$("syRoom").value="TCH-"+rndCode(8,4)}
 function toggleAuto(){db.sync.auto=!db.sync.auto;$("tgAuto").className="tg"+(db.sync.auto?" on":"")}
 function saveSync(){readSyncForm();
  if(db.sync.mode!=="off"&&!db.sync.room)return toast("กรุณาใส่รหัสห้องข้อมูล");
- saveNow("บันทึกการตั้งค่าซิงก์แล้ว");closeSync();secUI();scheduleAutoPull()}
+ saveNow("บันทึกการตั้งค่าซิงก์แล้ว");closeSync();secUI();startRealtime()}
 function shareRoom(){const t=`URL: ${$("syURL").value}\nรหัสห้องข้อมูล: ${$("syRoom").value}`;
  navigator.clipboard?.writeText(t).then(()=>toast("คัดลอกแล้ว นำไปกรอกที่เครื่องอื่นได้เลย"),()=>toast(t))}
 function scheduleAutoPull(){clearTimeout(pullT);
- if(db.sync.auto&&db.sync.mode!=="off")pullT=setTimeout(()=>cloudPull(true),10000)}
+ if(db.sync.auto&&db.sync.mode!=="off"&&!streamConnected)pullT=setTimeout(()=>cloudPull(true),30000)}
+function closeRealtime(){clearTimeout(streamRetryT);if(realtimeStream){realtimeStream.close();realtimeStream=null}streamConnected=false}
+function receiveRealtime(d){
+ if(!d||!d.payload)return;
+ const remoteRev=+d.rev||0,seenRev=+db.sync.lastRemoteRev||0,remoteAt=+d.updatedAt||0;
+ if((remoteRev&&remoteRev<=seenRev)||(!remoteRev&&remoteAt<=(+db.sync.lastPull||0)))return;
+ const localCount=Object.values(db.classes).reduce((a,v)=>a+v.length,0);
+ const remoteCount=Object.values(d.payload.classes||{}).reduce((a,v)=>a+v.length,0);
+ if(!localCount||remoteAt>=(+db.updatedAt||0)){
+  applyRemote(d);if(localCount)toast(`อัปเดตแบบเรียลไทม์แล้ว — ${remoteCount} คน`);return;
+ }
+ db.sync.lastRemoteRev=remoteRev;db.sync.lastPull=remoteAt;localStorage.setItem("scoreV5",JSON.stringify(db));
+ askChoice(`<b>พบข้อมูลใหม่จากคลาวด์</b><br>
+  <div style="text-align:left;font-size:12.5px;margin-top:10px;line-height:1.9">
+  ☁️ คลาวด์ — ${remoteCount} คน · แก้ล่าสุด ${fmt(remoteAt)}<br>
+  💻 เครื่องนี้ — ${localCount} คน · แก้ล่าสุด ${fmt(db.updatedAt)}</div>`,
+  [["ใช้ของคลาวด์","btn cy",()=>{applyRemote(d);toast("ใช้ข้อมูลเรียลไทม์แล้ว")}],
+   ["รวมข้อมูล","btn ok",()=>{mergeRemote(d);toast("รวมข้อมูลเรียบร้อย")}],
+   ["ใช้ของเครื่องนี้","btn ghost",()=>{cloudPush();toast("อัปโหลดทับคลาวด์แล้ว")}]]);
+}
+function startRealtime(){
+ closeRealtime();
+ if(!db.sync.auto||db.sync.mode!=="firebase"||!cloudURL(true)){scheduleAutoPull();return}
+ if(!window.EventSource){scheduleAutoPull();return}
+ try{
+  realtimeStream=new EventSource(cloudURL(true));
+  realtimeStream.addEventListener("put",e=>{try{const x=JSON.parse(e.data);if(x.path==="/"||x.path==="")receiveRealtime(x.data)}catch(_) {}});
+  realtimeStream.addEventListener("patch",e=>{try{const x=JSON.parse(e.data);if(x.path==="/"||x.path==="")receiveRealtime(x.data);else cloudPull(true)}catch(_) {}});
+  realtimeStream.onopen=()=>{streamConnected=true;clearTimeout(pullT);secUI()};
+  realtimeStream.onerror=()=>{streamConnected=false;closeRealtime();streamRetryT=setTimeout(startRealtime,5000);scheduleAutoPull();secUI()};
+ }catch(_){scheduleAutoPull()}
+}
 addEventListener("focus",()=>{if(db.sync.auto&&db.sync.mode!=="off")cloudPull(true)});
 
 /* ================= ระบบล็อก ================= */
@@ -1396,7 +1458,7 @@ addEventListener("beforeunload",()=>{
  try{const url=cloudURL();if(url)fetch(url,{method:"PUT",headers:syncHead(),body:JSON.stringify(envelope()),keepalive:true})}catch(e){}
 });
 load();locked=!!db.sec.on;$("term").value=db.cfg.term||"";render();
-if(db.sync.auto&&db.sync.mode!=="off"){setTimeout(()=>cloudPull(true),800);scheduleAutoPull()}
+if(db.sync.auto&&db.sync.mode!=="off"){setTimeout(()=>cloudPull(true),800);startRealtime()}
 </script>
 </body>
 </html>
