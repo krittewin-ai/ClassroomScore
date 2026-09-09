@@ -1,11 +1,9 @@
-
-
 <!DOCTYPE html>
 <html lang="th" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ระบบกรอกคะแนน • วิชาคอมพิวเตอร์ v7 (Firebase Real-time)</title>
+<title>ระบบกรอกคะแนน • วิชาคอมพิวเตอร์ v5 (ล็อกชื่อ + ซิงก์คลาวด์)</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ================= UI OVERHAUL ================= */
@@ -508,97 +506,7 @@ td input:focus, td select:focus { box-shadow: 0 0 0 4px rgba(105,86,232,.14); }
 .contact-link span { display: block; font-size: 13px; font-weight: 700; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media(max-width:680px) { .contact-grid { grid-template-columns: 1fr; } .contact-link { min-height: 56px; } }
 
-/* ===== MOBILE-FIRST TOUCH LAYER ===== */
-button, input, select, textarea { touch-action: manipulation; }
-@media(max-width:680px) {
-  body { padding: 8px; overflow-x: hidden; }
-  .wrap { width: 100%; }
-  .hero { padding: 18px 14px 15px; margin-bottom: 12px; }
-  .hero h1 { font-size: 21px; line-height: 1.35; flex-wrap: wrap; }
-  .hero p { font-size: 12.5px; line-height: 1.5; }
-  .hero-in { gap: 14px; }
-  .hero-in > div:last-child { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); width: 100%; gap: 7px !important; }
-  .badge-term { grid-column: 1 / -1; width: 100%; min-height: 44px; padding: 9px 12px; }
-  .badge-term input { flex: 1; min-width: 0; font-size: 16px; }
-  .hero .icon-btn { width: 100%; height: 44px; min-width: 0; font-size: 18px; }
-  .secline { gap: 6px; margin-top: 0; }
-  .secline .chip { padding: 7px 9px; font-size: 11px; max-width: 100%; }
-  .card { padding: 13px 11px; margin-bottom: 12px; }
-  .card h3 { margin-bottom: 13px; }
-  .side .card { margin-bottom: 10px; }
-  .lv-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-  .lv { justify-content: center; padding: 11px 5px; font-size: 13px; }
-  .lv .cnt { padding: 2px 6px; }
-  .rooms { gap: 7px; }
-  .rm { width: 44px; height: 44px; }
-  .bar { gap: 7px; }
-  .bar .btn { flex: 1 1 calc(50% - 7px); min-height: 44px; justify-content: center; padding: 10px 8px; font-size: 13px; }
-  .search { flex: 1 1 100%; min-width: 100%; order: 20; }
-  .search input { min-height: 44px; font-size: 16px; }
-  .prog { margin-top: 14px; }
-  .tbl-wrap { margin: 0 -3px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  table { min-width: 980px; }
-  thead th { padding: 12px 8px; }
-  tbody td { padding: 7px 7px; }
-  td input, td select { min-height: 42px; font-size: 16px; }
-  td input.txt { min-width: 118px; }
-  .mini { width: 40px; height: 40px; }
-  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .st { padding: 12px 9px; gap: 8px; min-width: 0; }
-  .st .ic { width: 36px; height: 36px; font-size: 16px; }
-  .st b { font-size: 18px; }
-  .st span { font-size: 10.5px; }
-  .modal { padding: 10px; }
-  .modal .box { width: 100%; max-height: 90svh; padding: 19px 14px; border-radius: 18px; }
-  .modal h4 { font-size: 18px; }
-  .modal .sub { font-size: 13px; margin-bottom: 17px; }
-  .frow { gap: 7px; margin-bottom: 12px; }
-  .frow input, .frow select, textarea { min-height: 44px; font-size: 16px; }
-  .frow label { font-size: 13px; }
-  .sw { padding: 13px 12px; gap: 9px; }
-  .sw small { font-size: 11px; }
-  #toast { right: 10px; bottom: 10px; left: 10px; max-width: none; font-size: 13px; }
-}
-@media(max-width:380px) {
-  .hero h1 { font-size: 19px; }
-  .hero p { font-size: 11.5px; }
-  .bar .btn { font-size: 12px; }
-  .lv-list { grid-template-columns: repeat(2, 1fr); }
-  .contact-link span { font-size: 12px; }
-}
-
-/* ===== 9:16 PORTRAIT PHONE LAYOUT ===== */
-@media screen and (max-width:680px) and (orientation:portrait) {
-  html, body { width: 100%; min-width: 320px; }
-  body { min-height: 177.78vw; padding: 6px; }
-  .hero { padding: 16px 12px 13px; border-radius: 18px; }
-  .hero-in { gap: 11px; }
-  .hero-in > div:first-child { width: 100%; }
-  .hero h1 { font-size: clamp(18px, 5.4vw, 22px); }
-  .hero h1 span { display: block; width: 100%; font-size: .78em; margin-top: 2px; }
-  .hero p { margin-top: 5px; }
-  .hero-in > div:last-child { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px !important; }
-  .badge-term { min-height: 42px; }
-  .hero .icon-btn { height: 42px; font-size: 17px; }
-  .secline .chip { font-size: 10.5px; }
-  .grid { display: flex; flex-direction: column; gap: 10px; }
-  .side { width: 100%; }
-  .side .card { margin-bottom: 10px; }
-  .side .card:nth-child(3) { margin-bottom: 0; }
-  .card { width: 100%; }
-  .card h3 { font-size: 14px; }
-  .bar .btn { min-height: 42px; }
-  .tbl-wrap { max-width: 100%; overscroll-behavior-x: contain; }
-  .modal .box { max-height: 88svh; }
-  .rep-grid { grid-template-columns: 1fr; gap: 8px; }
-  .rep-grid div { padding: 13px; }
-}
-
-
 </style>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -722,10 +630,7 @@ button, input, select, textarea { touch-action: manipulation; }
    <li>เข้า <code>console.firebase.google.com</code> → สร้างโปรเจกต์</li>
    <li>เมนู <b>Build → Realtime Database</b> → Create Database (เลือก <b>test mode เฉพาะตอนทดลอง</b>)</li>
    <li>คัดลอก URL ที่ขึ้นต้นด้วย <code>https://xxxx.firebaseio.com</code> หรือ <code>...firebasedatabase.app</code></li>
-   <li>จาก Firebase Console → Project settings → Your apps → Web app ให้คัดลอก <b>Web API Key, Auth Domain และ Project ID</b> มาใส่ด้านล่าง</li>
-    <li>เปิด <b>Authentication → Sign-in method → Anonymous</b> แล้วกดเปิดใช้งาน</li>
-    <li>เปิด Realtime Database และตั้ง Rules ให้ผู้ใช้ที่ authenticated อ่าน/เขียนได้ (ไม่แนะนำ Test mode สำหรับใช้งานจริง)</li>
-    <li>กด <b>ทดสอบการเชื่อมต่อ</b> → <b>บันทึกการตั้งค่า</b> (ข้อมูลจะอยู่ที่ <code>/scoreapp/{รหัสห้อง}</code>)</li>
+   <li>วาง URL ด้านล่าง → กด <b>ทดสอบการเชื่อมต่อ</b> → <b>อัปโหลด</b> (ข้อมูลจะอยู่ที่ <code>/scoreapp/{รหัสห้อง}</code>)</li>
    <li>ที่เครื่องอื่น เปิดไฟล์เดียวกัน ใส่ URL + <b>รหัสห้องข้อมูล</b> ให้ตรงกัน แล้วกด <b>ดึงข้อมูล</b></li>
   </ol>
  </div>
@@ -737,14 +642,11 @@ button, input, select, textarea { touch-action: manipulation; }
    <option value="custom">REST API ของตัวเอง</option>
   </select></div>
  <div class="frow" id="rowURL"><label>URL ฐานข้อมูล</label><input id="syURL" placeholder="https://xxxx.firebasedatabase.app"></div>
-  <div class="frow" id="rowApiKey"><label>Firebase Web API Key</label><input id="syApiKey" type="password" autocomplete="off" placeholder="วาง Web API Key จาก Firebase"></div>
-  <div class="frow" id="rowAuthDomain"><label>Auth Domain</label><input id="syAuthDomain" placeholder="project-id.firebaseapp.com"></div>
-  <div class="frow" id="rowProjectId"><label>Project ID</label><input id="syProjectId" placeholder="เช่น classroonscore"></div>
-  <div class="frow" id="rowKey" style="display:none"><label>คีย์ / Secret</label><input id="syKey" placeholder="ไม่ใช้กับ Firebase SDK"></div>  
-  <div class="frow"><label>รหัสห้องข้อมูล</label><input id="syRoom" placeholder="เช่น TCH-A1B2">
+ <div class="frow" id="rowKey"><label>คีย์ / Secret</label><input id="syKey" placeholder="เว้นว่างได้ถ้าเป็น test mode"></div>
+ <div class="frow"><label>รหัสห้องข้อมูล</label><input id="syRoom" placeholder="เช่น TCH-A1B2">
   <button class="btn ghost sm" onclick="genRoom()">สุ่ม</button></div>
  <div class="frow"><label>ชื่อเครื่องนี้</label><input id="syDev" placeholder="เช่น คอมที่โรงเรียน"></div>
-  <div class="sw"><div><b>ซิงก์อัตโนมัติ</b><small>อัปโหลดหลังแก้ไข และตรวจข้อมูลใหม่ทุก 10 วินาที</small></div>
+ <div class="sw"><div><b>ซิงก์อัตโนมัติ</b><small>อัปโหลดเองหลังแก้ไข และดึงข้อมูลเมื่อเปิดเว็บ</small></div>
   <button class="tg" id="tgAuto" onclick="toggleAuto()"></button></div>
  <div id="syInfo" style="font-size:12px;color:var(--muted);margin:12px 0;line-height:1.8"></div>
  <div class="bar" style="margin-top:6px">
@@ -819,13 +721,11 @@ button, input, select, textarea { touch-action: manipulation; }
 const DEF=[{id:"c1",name:"หน่วยที่ 1",max:20},{id:"c2",name:"หน่วยที่ 2",max:20},
 {id:"c3",name:"ชิ้นงาน",max:20},{id:"mid",name:"กลางภาค",max:20},{id:"fin",name:"ปลายภาค",max:20}];
 const SEC0={on:false,hash:"",salt:"",rec:"",recPlain:"",idle:10,ro:false,lockNames:true};
-const START_CLASSES={"ม.6/2":[{"sid":"24813","name":"นาย ขวัญชัย เงินสันเทียะ","s":{},"att":"","flag":""},{"sid":"24871","name":"นาย จิฐิโร วาทานาเบ้","s":{},"att":"","flag":""},{"sid":"24814","name":"นาย ณัฐพล ธงสันเทียะ","s":{},"att":"","flag":""},{"sid":"24836","name":"นาย ภาณุพงศ์ มูลลิสาร","s":{},"att":"","flag":""},{"sid":"24818","name":"นาย รชต แป้นสุข","s":{},"att":"","flag":""},{"sid":"24879","name":"นาย วงศ์แสง วงค์ขันธ์","s":{},"att":"","flag":""},{"sid":"24820","name":"น.ส. ยุภาวดี เข็มสุข","s":{},"att":"","flag":""},{"sid":"24841","name":"น.ส. ญาดา บุญศรี","s":{},"att":"","flag":""},{"sid":"24843","name":"น.ส. ธิชาพร ทะนากลาง","s":{},"att":"","flag":""},{"sid":"24902","name":"น.ส. ปรดา รัตนประพันธ์","s":{},"att":"","flag":""},{"sid":"24810","name":"น.ส. พรรัตน์ สุขเจริญ","s":{},"att":"","flag":""},{"sid":"24783","name":"นาย ธีรวัฒน์ ปีกกระโทก","s":{},"att":"","flag":""},{"sid":"25068","name":"น.ส. สุจินทรา ด่านกระโทก","s":{},"att":"","flag":""},{"sid":"25108","name":"น.ส. กนกวรรณ หมื่นกระโทก","s":{},"att":"","flag":""}],"ม.6/1":[{"sid":"24805","name":"นาย จิรายุทธ อินสันเทียะ","s":{},"att":"","flag":""},{"sid":"24830","name":"นาย จักรินทร์ แถมพลกรัง","s":{},"att":"","flag":""},{"sid":"24809","name":"นาย รัชภูมิ แสนองอาจ","s":{},"att":"","flag":""},{"sid":"25031","name":"น.ส. กัลยดา คงยิ่ง","s":{},"att":"","flag":""},{"sid":"24825","name":"น.ส. พิไลวรรณ นิลออ","s":{},"att":"","flag":""},{"sid":"25060","name":"น.ส. จิราภรณ์ อินธิราช","s":{},"att":"","flag":""},{"sid":"25141","name":"น.ส. พรินทา พิมพ์เสน","s":{},"att":"","flag":""}],"ม.5/2":[{"sid":"24907","name":"นาย ณัชพล บัวเจริญ","s":{},"att":"","flag":""},{"sid":"24870","name":"นาย ธนสิษฐ์ วรรณทรัพย์","s":{},"att":"","flag":""},{"sid":"24886","name":"นาย พร้อมพงษ์ กล้าหาญ (รร)","s":{},"att":"","flag":""},{"sid":"24980","name":"นาย พัชรเมธ ช่างพะเนาว์","s":{},"att":"","flag":""},{"sid":"24873","name":"น.ส. ณัฏฐา พรประทุม","s":{},"att":"","flag":""},{"sid":"24969","name":"น.ส. พรพรรณ แทนมูล (รร)","s":{},"att":"","flag":""},{"sid":"24891","name":"น.ส. วรรณภา คลื่นพลกรัง","s":{},"att":"","flag":""},{"sid":"25084","name":"น.ส. ศศิประภา แห่งภักดี","s":{},"att":"","flag":""},{"sid":"24973","name":"น.ส. ศศิวรรณ เมยประโคน","s":{},"att":"","flag":""},{"sid":"24879","name":"น.ส. อพัชญาดา แสนรัตน์","s":{},"att":"","flag":""},{"sid":"24877","name":"น.ส. วิภาวรรณ ทีสุกะ","s":{},"att":"","flag":""},{"sid":"24908","name":"นาย รุ่งโรจน์ ศรีมุงคุณ","s":{},"att":"","flag":""},{"sid":"24881","name":"นาย จักรกรี ปทุมสูตร","s":{},"att":"","flag":""},{"sid":"24964","name":"นาย ธนกฤต แสนบุญมี","s":{},"att":"","flag":""},{"sid":"25089","name":"นาย ภาณุพงษ์ ปลั่งกลาง sw","s":{},"att":"","flag":""},{"sid":"25027","name":"น.ส. ปิยมน แสนรัมย์","s":{},"att":"","flag":""},{"sid":"25137","name":"นาย วรเทพ สุขใหม่","s":{},"att":"","flag":""},{"sid":"25139","name":"นาย ณัฐพงษ์ กิ่งพุดซา","s":{},"att":"","flag":""}],"ม.5/1":[{"sid":"24880","name":"นาย ดล แววโคกสูง","s":{},"att":"","flag":""},{"sid":"24888","name":"น.ส. ชณิดา เนาว์วัฒน์","s":{},"att":"","flag":""},{"sid":"24889","name":"น.ส. นิภาพร ระดมสุข","s":{},"att":"","flag":""},{"sid":"24875","name":"น.ส. ปาณิศา ประมูล","s":{},"att":"","flag":""},{"sid":"24876","name":"น.ส. ปาริศา ปานานนท์","s":{},"att":"","flag":""},{"sid":"24914","name":"น.ส. พิชญาภา อุทุมพิรัตน์","s":{},"att":"","flag":""},{"sid":"24893","name":"น.ส. ศรัญญา นิ่มจ้อย","s":{},"att":"","flag":""},{"sid":"24878","name":"น.ส. เสาวภาคย์ แก้วระวัง","s":{},"att":"","flag":""},{"sid":"24868","name":"นาย พงศ์พีระ ไพฑูรย์","s":{},"att":"","flag":""},{"sid":"24905","name":"นาย เชาวนาท สิทธิเวช","s":{},"att":"","flag":""},{"sid":"24890","name":"น.ส. พศิกา เทียมถม","s":{},"att":"","flag":""},{"sid":"25081","name":"นาย ปริญน์ สนิทโกสัย","s":{},"att":"","flag":""},{"sid":"24979","name":"น.ส. ปุษยา บอนประโคน","s":{},"att":"","flag":""},{"sid":"25109","name":"น.ส. ณัฐนิชา จันทร์โยธา","s":{},"att":"","flag":""},{"sid":"24912","name":"นาย พีรพัฒน์ ทองประเสริฐ","s":{},"att":"","flag":""}],"ม.4/2":[{"sid":"25125","name":"นาย จิรวัฒน์ จันทร์เถื่อน","s":{},"att":"","flag":""},{"sid":"25903","name":"นาย ณัฐพล ทองกระศรี","s":{},"att":"","flag":""},{"sid":"25112","name":"นาย ณัฐภูมิ ภารเจิม","s":{},"att":"","flag":""},{"sid":"25128","name":"นาย ธัชพล มาธงชัย","s":{},"att":"","flag":""},{"sid":"25126","name":"นาย รัชชานนท์ ยะปะนันท์","s":{},"att":"","flag":""},{"sid":"24927","name":"นาย สมพงษ์ เจนหัต","s":{},"att":"","flag":""},{"sid":"25127","name":"น.ส. เบญญทิพย์ คาระวะ","s":{},"att":"","flag":""},{"sid":"24882","name":"นาย พงศกร ล้อมขุนทด","s":{},"att":"","flag":""},{"sid":"25089","name":"นาย ภาณุพงษ์ ปลั่งกลาง","s":{},"att":"","flag":""},{"sid":"25083","name":"น.ส. ไอลิน กำเนิดแก้ว","s":{},"att":"","flag":""}],"ม.4/1":[{"sid":"24924","name":"นาย เพชรอนันต์ ช่วยงาน","s":{},"att":"","flag":""},{"sid":"25123","name":"นาย อนุชิต เกิดจันทึก","s":{},"att":"","flag":""},{"sid":"25053","name":"น.ส. ณัฐธิดา มะเดื่อชุมพร","s":{},"att":"","flag":""},{"sid":"24945","name":"น.ส. ดวงกมล รังสี","s":{},"att":"","flag":""},{"sid":"24930","name":"น.ส. วันวิสา นาคพลกรัง","s":{},"att":"","flag":""},{"sid":"25124","name":"น.ส. ศิริรักษ์ ยุพัตร","s":{},"att":"","flag":""}],"ม.3/2":[{"sid":"24982","name":"ด.ช. กมลภพ จิตต์พิมาย","s":{},"att":"","flag":""},{"sid":"24984","name":"ด.ช. จิรพล ปทุมสูตร","s":{},"att":"","flag":""},{"sid":"24986","name":"ด.ช. ณวัฒน์ สุทธประเสริฐ","s":{},"att":"","flag":""},{"sid":"24987","name":"ด.ช. ทินภัทร วงสีสังข์","s":{},"att":"","flag":""},{"sid":"24994","name":"ด.ช. รัชพงศ์ ทองสมบูรณ์","s":{},"att":"","flag":""},{"sid":"24997","name":"ด.ช. วิสิฐพัฒน์ คงวัตร","s":{},"att":"","flag":""},{"sid":"24998","name":"ด.ช. วีระวุฒิ ศรีสุภา","s":{},"att":"","flag":""},{"sid":"24999","name":"ด.ช. ศุภกรณ์ ไทยจังหรีด","s":{},"att":"","flag":""},{"sid":"25000","name":"ด.ช. ศุภณัฏฐ์ อัครอุดมวิทย์","s":{},"att":"","flag":""},{"sid":"25001","name":"ด.ช. อนิวัต รักษาพงษ์","s":{},"att":"","flag":""},{"sid":"25022","name":"ด.ญ. นภัสนันท์ แช้นสีดา","s":{},"att":"","flag":""},{"sid":"25015","name":"ด.ญ. นวพรรษ แดงสุริยานุกูล","s":{},"att":"","flag":""},{"sid":"25012","name":"ด.ญ. ไอยวริญ ปรางปรุ","s":{},"att":"","flag":""},{"sid":"25040","name":"ด.ญ. นิยตา การบรรจง","s":{},"att":"","flag":""},{"sid":"25087","name":"ด.ช. ธัญเทพ มุ่งต่อกลาง","s":{},"att":"","flag":""},{"sid":"25062","name":"ด.ช. อติเทพ จันทร์เสาร์","s":{},"att":"","flag":""},{"sid":"25113","name":"ด.ญ. รัชนิณา ชาติภูมิ","s":{},"att":"","flag":""},{"sid":"25132","name":"ด.ช. วรชิต หวังต่อกลาง","s":{},"att":"","flag":""},{"sid":"25136","name":"ด.ช. ธาวิน กันยานัด","s":{},"att":"","flag":""}],"ม.3/1":[{"sid":"25016","name":"ด.ช. ชยกร พงษ์ศิริ","s":{},"att":"","flag":""},{"sid":"25020","name":"ด.ช. ชัยสิทธิ์ พินิจไชย","s":{},"att":"","flag":""},{"sid":"25013","name":"ด.ช. ณัช ตระกูลรัมย์","s":{},"att":"","flag":""},{"sid":"24989","name":"ด.ช. นนท์ณภัทร์ ช่องฉิมพลี","s":{},"att":"","flag":""},{"sid":"24990","name":"ด.ช. นนทนพงศ์ จักร์แก้ว (รร)","s":{},"att":"","flag":""},{"sid":"25019","name":"ด.ช. บวรวรรธน์ งามพลกรัง","s":{},"att":"","flag":""},{"sid":"25017","name":"ด.ช. พีรพัฒน์ สุขเกษม","s":{},"att":"","flag":""},{"sid":"24991","name":"ด.ช. พีรพัฒน์ ช้างคำ","s":{},"att":"","flag":""},{"sid":"24993","name":"ด.ช. มงคลชัย สมพันเพียง","s":{},"att":"","flag":""},{"sid":"24995","name":"ด.ช. รัฐภูมิ เกี้ยวสันเทียะ","s":{},"att":"","flag":""},{"sid":"25002","name":"ด.ช. อภิวัฒน์ วันจันทร์ (รร)","s":{},"att":"","flag":""},{"sid":"25003","name":"ด.ญ. กัญญา อินสันเทียะ","s":{},"att":"","flag":""},{"sid":"25005","name":"ด.ญ. พิมพิกา เรียงสีมา","s":{},"att":"","flag":""},{"sid":"25006","name":"ด.ญ. ฟ้าใส คำหนู","s":{},"att":"","flag":""},{"sid":"25009","name":"ด.ญ. ศริณย์พร สินปรุ","s":{},"att":"","flag":""},{"sid":"25011","name":"ด.ญ. สุรีย์นิภา มาตย์คำ (รร)","s":{},"att":"","flag":""},{"sid":"25036","name":"นาย กันตพิชญ์ สุขขุมนัย","s":{},"att":"","flag":""},{"sid":"25059","name":"ด.ญ. เกวลี นามแสง","s":{},"att":"","flag":""},{"sid":"25061","name":"ด.ช. ณราชล หิรัญจิราพัชร","s":{},"att":"","flag":""},{"sid":"24978","name":"ด.ช. สุวิทย์ สมบูรณ์","s":{},"att":"","flag":""},{"sid":"25080","name":"ด.ญ. เสาวลักษณ์ ภูมิขุนทด","s":{},"att":"","flag":""},{"sid":"25133","name":"ด.ช. ณัฐพัชน์ แก้วบุตรดีวงษ์","s":{},"att":"","flag":""},{"sid":"25134","name":"ด.ช. อัครเดช นามจันทร์","s":{},"att":"","flag":""}],"ม.2/1":[{"sid":"25063","name":"ด.ช. ชญานนท์ ศรีจันอัด","s":{},"att":"","flag":""},{"sid":"25064","name":"ด.ช. ไตรทศ นิ่มจ้อย","s":{},"att":"","flag":""},{"sid":"25065","name":"ด.ช. ธนโชติ มีบุญมาก","s":{},"att":"","flag":""},{"sid":"25066","name":"ด.ช. ธันวา ทานากลาง","s":{},"att":"","flag":""},{"sid":"25067","name":"ด.ช. พลภัทร กองจอหอ","s":{},"att":"","flag":""},{"sid":"25071","name":"ด.ช. ศุทธวีย์ สินปรุ","s":{},"att":"","flag":""},{"sid":"25072","name":"ด.ญ. กชพรรณ แนมผักแว่น","s":{},"att":"","flag":""},{"sid":"25073","name":"ด.ญ. เจนจิรา เจนไร่","s":{},"att":"","flag":""},{"sid":"25074","name":"ด.ญ. ฐานิดา บุญคำ","s":{},"att":"","flag":""},{"sid":"25075","name":"ด.ญ. ณิชากร จุลเวช","s":{},"att":"","flag":""},{"sid":"25076","name":"ด.ญ. ดาริกา เปรมชาติ","s":{},"att":"","flag":""},{"sid":"25077","name":"ด.ญ. นิสาพร ชมโคกสูง","s":{},"att":"","flag":""},{"sid":"25078","name":"ด.ญ. พัชรมน ความใหม่","s":{},"att":"","flag":""},{"sid":"25079","name":"ด.ญ. รัตดา อาญาเมือง","s":{},"att":"","flag":""},{"sid":"25086","name":"ด.ช. กนกฉัตร นรสาร","s":{},"att":"","flag":""},{"sid":"24996","name":"ด.ช. วันดี คำโสภา","s":{},"att":"","flag":""},{"sid":"25107","name":"ด.ช. กฤษฎา ลือาจ","s":{},"att":"","flag":""},{"sid":"25131","name":"ด.ญ. วิภาพร แสงวิลัย","s":{},"att":"","flag":""},{"sid":"25129","name":"ด.ญ. ธมลวรรณ ทองหมื่นไวย","s":{},"att":"","flag":""},{"sid":"25140","name":"ด.ญ. กุลภรณ์ เดี่ยววณิชย์","s":{},"att":"","flag":""}],"ม.1/1":[{"sid":"25115","name":"ด.ช. ชัยสิทธิ์ ศรีวิจารณ์","s":{},"att":"","flag":""},{"sid":"25116","name":"ด.ญ. กมลรัตน์ เรืองศรี","s":{},"att":"","flag":""},{"sid":"25117","name":"ด.ญ. กัญญาณัฐ เรียบกระโทก","s":{},"att":"","flag":""},{"sid":"25118","name":"ด.ญ. ชยุดา หิงพุดซา","s":{},"att":"","flag":""},{"sid":"25119","name":"ด.ญ. เปรมสุดา อุณาพรม","s":{},"att":"","flag":""},{"sid":"25120","name":"ด.ญ. สาวิตรี ชาติสำโรง","s":{},"att":"","flag":""},{"sid":"25122","name":"ด.ญ. สุพรรษา เวกสูงเนิน","s":{},"att":"","flag":""},{"sid":"25135","name":"ด.ญ. อาภัสรา เพ็ชรกำเนิด","s":{},"att":"","flag":""},{"sid":"25138","name":"ด.ช. กฤษณะ มะสันเทียะ","s":{},"att":"","flag":""}]};
-const STUDENT_SEED_KEY="scoreapp_students_seed_v1";
-const SYNC0={mode:"firebase",url:"https://classroonscore-default-rtdb.asia-southeast1.firebasedatabase.app",key:"",apiKey:"AIzaSyCmhbGRGoWEk94MAHX_4gVEu1V1K3UXnes",authDomain:"classroonscore.firebaseapp.com",projectId:"classroonscore",room:"school-main",device:"",auto:true,rev:0,lastRemoteRev:0,lastPush:0,lastPull:0};
+const SYNC0={mode:"firebase",url:"https://classroonscore-default-rtdb.asia-southeast1.firebasedatabase.app",key:"",room:"school-main",device:"",auto:true,rev:0,lastPush:0,lastPull:0};
 let db={cfg:{items:JSON.parse(JSON.stringify(DEF)),attMin:80,school:"",teacher:"",term:""},
- sec:{...SEC0},sync:{...SYNC0},classes:JSON.parse(JSON.stringify(START_CLASSES)),trash:[],log:[],updatedAt:0};
+ sec:{...SEC0},sync:{...SYNC0},classes:{},trash:[],log:[],updatedAt:0};
 let lvl=1,room=1,cur="",pending=null,sort={k:"no",d:1},saveT,pushT;
-let locked=false,pinMode="",pinCb=null,tmpPin="",idleT,busy=false,pushInFlight=false,pullInFlight=false,pullT,streamRetryT,realtimeStream=null,streamConnected=false,dirtyPush=false;
+let locked=false,pinMode="",pinCb=null,tmpPin="",idleT,busy=false;
 const $=id=>document.getElementById(id);
 const K=()=>`ม.${lvl}/${room}`, cls=()=>db.classes[cur]||[];
 const now=()=>new Date().toLocaleString("th-TH",{dateStyle:"short",timeStyle:"short"});
@@ -848,188 +748,127 @@ function load(){try{const r=JSON.parse(localStorage.getItem("scoreV5"));
   db.sec={...SEC0,...(r.sec||{})};db.sync={...SYNC0,...(r.sync||{})};
   db.trash=r.trash||[];db.log=r.log||[]}}catch(e){}
  if(!db.sync.url){db.sync.mode="firebase";db.sync.url="https://classroonscore-default-rtdb.asia-southeast1.firebasedatabase.app";db.sync.room=db.sync.room||"school-main"}
- const seeded=localStorage.getItem(STUDENT_SEED_KEY)==="1";
- if(!seeded){Object.entries(START_CLASSES).forEach(([k,students])=>{
-  const list=db.classes[k]=db.classes[k]||[],ids=new Set(list.map(s=>String(s.sid||"")));
-  students.forEach(s=>{if(!ids.has(String(s.sid))){list.push(JSON.parse(JSON.stringify(s)));ids.add(String(s.sid))}})});
-  localStorage.setItem(STUDENT_SEED_KEY,"1");db.updatedAt=Date.now();localStorage.setItem("scoreV5",JSON.stringify(db))}
  db.trash=db.trash.filter(t=>t.at>Date.now()-30*864e5);
  if(!db.sync.device)db.sync.device=navigator.platform||"เครื่องนี้"}
-function save(){clearTimeout(saveT);saveT=setTimeout(()=>{saveT=null;db.updatedAt=Date.now();
- localStorage.setItem("scoreV5",JSON.stringify(db));dirtyPush=true;autoPush()},250)}
-function saveNow(msg){db.updatedAt=Date.now();localStorage.setItem("scoreV5",JSON.stringify(db));dirtyPush=true;
+function save(){clearTimeout(saveT);saveT=setTimeout(()=>{db.updatedAt=Date.now();
+ localStorage.setItem("scoreV5",JSON.stringify(db));autoPush()},250)}
+function saveNow(msg){db.updatedAt=Date.now();localStorage.setItem("scoreV5",JSON.stringify(db));
  if(msg)toast(msg);autoPush()}
 function addLog(act,detail){db.log.unshift({at:now(),ts:Date.now(),act,detail,dev:db.sync.device});db.log=db.log.slice(0,250)}
 
-/* ================= ซิงก์ Firebase V7 ================= */
-let fbApp=null,fbAuth=null,fbDB=null,fbRoomRef=null,fbUnsub=null,fbReady=false,fbSigning=false;
-
+/* ================= ซิงก์คลาวด์ ================= */
 function cloudURL(read){
  const s=db.sync;if(!s.room)return"";
- if(s.mode==="firebase"){
-  let u=(s.url||"").trim().replace(/\/+$/,'');if(!u)return"";
+ if(s.mode==="firebase"){let u=(s.url||"").trim().replace(/\/+$/,"");if(!u)return"";
   if(!/^https?:/i.test(u))u="https://"+u;
-  return `${u}/scoreapp/${encodeURIComponent(s.room)}.json`;
- }
+  return `${u}/scoreapp/${encodeURIComponent(s.room)}.json`+(s.key?`?auth=${encodeURIComponent(s.key)}`:"")}
  if(s.mode==="jsonbin")return `https://api.jsonbin.io/v3/b/${s.room.trim()}`+(read?"/latest":"");
- if(s.mode==="custom"){let u=(s.url||"").trim().replace(/\/+$/,'');if(!u)return"";return `${u}/${encodeURIComponent(s.room)}`}
- return "";
-}
-function syncHead(){const h={"Content-Type":"application/json"};if(db.sync.mode==="jsonbin"&&db.sync.key)h["X-Master-Key"]=db.sync.key;return h}
-function setBusy(b,txt){busy=b;$("syncBtn").className="icon-btn"+(b?" busy":(db.sync.mode!=="off"?" syncon":""));if(txt)toast(txt)}
-/* Firebase ห้ามใช้ . # $ / [ ] ในชื่อคีย์ จึงเข้ารหัสชื่อห้องเฉพาะตอนส่งขึ้นคลาวด์ */
-const fbClassKey=k=>"__k_"+[...new TextEncoder().encode(String(k))].map(x=>x.toString(16).padStart(2,"0")).join("");
-function fbClassKeyDecode(k){
- if(typeof k!=="string"||!/^__k_(?:[0-9a-f]{2})+$/i.test(k))return k;
- try{return new TextDecoder().decode(new Uint8Array((k.slice(4).match(/../g)||[]).map(x=>parseInt(x,16))))}catch(e){return k}
-}
-const encodeClasses=c=>Object.fromEntries(Object.entries(c||{}).map(([k,v])=>[fbClassKey(k),v]));
-const decodeClasses=c=>Object.fromEntries(Object.entries(c||{}).map(([k,v])=>[fbClassKeyDecode(k),v]));
-function envelope(){return{rev:(db.sync.rev||0)+1,updatedAt:Date.now(),device:db.sync.device,payload:{cfg:db.cfg,classes:encodeClasses(db.classes),trash:db.trash,log:db.log,sec:{on:db.sec.on,hash:db.sec.hash,salt:db.sec.salt,rec:db.sec.rec,idle:db.sec.idle,ro:db.sec.ro,lockNames:db.sec.lockNames}}}}
-function firebaseConfig(){
- const s=db.sync;
- return {apiKey:s.apiKey||"",authDomain:s.authDomain||((s.projectId||"")+".firebaseapp.com"),projectId:s.projectId||"",databaseURL:s.url||""};
-}
-async function ensureFirebase(){
- if(db.sync.mode!=="firebase")return false;
- const c=firebaseConfig();
- if(!c.databaseURL||!c.apiKey||!c.projectId){throw new Error("กรอก Firebase Web API Key, Auth Domain และ Project ID ให้ครบ")}
- if(!fbApp){fbApp=firebase.initializeApp(c,"scoreapp-v7");fbAuth=firebase.auth(fbApp);fbDB=firebase.database(fbApp)}
- if(!fbAuth.currentUser){
-  if(fbSigning)return false;
-  fbSigning=true;
-  try{await fbAuth.signInAnonymously()}finally{fbSigning=false}
- }
- if(!fbAuth.currentUser)throw new Error("Firebase Authentication ยังไม่พร้อม")
- const path=`scoreapp/${db.sync.room}`;
- if(!fbRoomRef||fbRoomRef.toString()!==fbDB.ref(path).toString())fbRoomRef=fbDB.ref(path);
- fbReady=true;
- return true;
-}
+ if(s.mode==="custom"){let u=(s.url||"").trim().replace(/\/+$/,"");if(!u)return"";
+  return `${u}/${encodeURIComponent(s.room)}`}
+ return ""}
+function syncHead(){const h={"Content-Type":"application/json"};
+ if(db.sync.mode==="jsonbin"&&db.sync.key)h["X-Master-Key"]=db.sync.key;return h}
+function setBusy(b,txt){busy=b;$("syncBtn").className="icon-btn"+(b?" busy":(db.sync.mode!=="off"?" syncon":""));
+ if(txt)toast(txt)}
+function envelope(){return{rev:(db.sync.rev||0)+1,updatedAt:Date.now(),device:db.sync.device,
+ payload:{cfg:db.cfg,classes:db.classes,trash:db.trash,log:db.log,
+  sec:{on:db.sec.on,hash:db.sec.hash,salt:db.sec.salt,rec:db.sec.rec,idle:db.sec.idle,ro:db.sec.ro,lockNames:db.sec.lockNames}}}}
 
 async function cloudPush(silent){
- const s=db.sync;
- if(s.mode==="off")return silent||toast("ยังไม่ได้เปิดการซิงก์ — กด ☁️ เพื่อตั้งค่า");
- if(!s.room)return silent||toast("ตั้งค่ารหัสห้องข้อมูลยังไม่ครบ");
- if(pushInFlight){dirtyPush=true;return}
- const doc=envelope();pushInFlight=true;dirtyPush=false;setBusy(true);
- try{
-  if(s.mode==="firebase"){
-   await ensureFirebase();
-   await fbRoomRef.set(doc);
-  }else{
-   const url=cloudURL();if(!url)throw new Error("ตั้งค่า URL ไม่ครบ");
-   const r=await fetch(url,{method:"PUT",headers:syncHead(),body:JSON.stringify(doc)});
-   if(!r.ok)throw new Error("HTTP "+r.status);
-  }
-  s.rev=doc.rev;s.lastRemoteRev=doc.rev;s.lastPush=doc.updatedAt;s.lastPull=doc.updatedAt;
-  localStorage.setItem("scoreV5",JSON.stringify(db));
-  if(!silent)toast("บันทึกคะแนนขึ้น Firebase แล้ว ✔");
- }catch(e){dirtyPush=true;if(!silent)toast("บันทึกไม่สำเร็จ — "+(e.message||e))}
- finally{pushInFlight=false;setBusy(false);secUI();if(dirtyPush)autoPush()}
-}
-function autoPush(){if(!db.sync.auto||db.sync.mode!=="firebase")return;clearTimeout(pushT);pushT=setTimeout(()=>cloudPush(true),400)}
+ const s=db.sync;if(s.mode==="off")return silent||toast("ยังไม่ได้เปิดการซิงก์ — กด ☁️ เพื่อตั้งค่า");
+ const url=cloudURL();if(!url)return silent||toast("ตั้งค่า URL หรือรหัสห้องข้อมูลยังไม่ครบ");
+ const doc=envelope();setBusy(true);
+ try{const r=await fetch(url,{method:"PUT",headers:syncHead(),body:JSON.stringify(doc)});
+  if(!r.ok)throw new Error("HTTP "+r.status);
+  s.rev=doc.rev;s.lastPush=doc.updatedAt;localStorage.setItem("scoreV5",JSON.stringify(db));
+  setBusy(false);secUI();if(!silent)toast("อัปโหลดขึ้นคลาวด์แล้ว ✔")}
+ catch(e){setBusy(false);if(!silent)toast("อัปโหลดไม่สำเร็จ — "+e.message)}}
+
+function autoPush(){if(!db.sync.auto||db.sync.mode==="off")return;
+ clearTimeout(pushT);pushT=setTimeout(()=>cloudPush(true),6000)}
 
 async function fetchRemote(){
- if(db.sync.mode==="firebase"){
-  await ensureFirebase();
-  const snap=await fbRoomRef.once("value");
-  const d=snap.val();
-  if(!d||!d.payload)throw new Error("ยังไม่มีข้อมูลบน Firebase ห้องนี้");
-  return d;
- }
  const url=cloudURL(true);if(!url)throw new Error("ยังตั้งค่าไม่ครบ");
- const r=await fetch(url,{headers:syncHead(),cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);
- let d=await r.json();if(db.sync.mode==="jsonbin"&&d&&d.record)d=d;if(!d||!d.payload)throw new Error("ยังไม่มีข้อมูลบนคลาวด์");return d;
-}
+ const r=await fetch(url,{headers:syncHead(),cache:"no-store"});
+ if(!r.ok)throw new Error("HTTP "+r.status);
+ let d=await r.json();
+ if(db.sync.mode==="jsonbin"&&d&&d.record)d=d.record;
+ if(!d||!d.payload)throw new Error("ยังไม่มีข้อมูลบนคลาวด์");
+ return d}
 
 async function cloudPull(silent){
  if(db.sync.mode==="off")return silent||toast("ยังไม่ได้เปิดการซิงก์");
- if(pullInFlight)return;pullInFlight=true;setBusy(true);
- try{
-  const d=await fetchRemote();
+ setBusy(true);
+ try{const d=await fetchRemote();setBusy(false);
   const localCount=Object.values(db.classes).reduce((a,v)=>a+v.length,0);
   const remoteCount=Object.values(d.payload.classes||{}).reduce((a,v)=>a+v.length,0);
-  if(!localCount){applyRemote(d);return silent?undefined:toast(`ดึงข้อมูลสำเร็จ — ${remoteCount} คน`)}
-  const remoteRev=+d.rev||0,seenRev=+db.sync.lastRemoteRev||0,remoteAt=+d.updatedAt||0,seenAt=+db.sync.lastPull||0;
-  if(silent&&((remoteRev&&remoteRev<=seenRev)||(!remoteRev&&remoteAt<=seenAt)))return;
-  if(silent&&remoteAt>=(+db.updatedAt||0)){applyRemote(d);return toast(`พบข้อมูลใหม่จากคลาวด์ — ${remoteCount} คน`)}
-  askChoice(`<b>พบข้อมูลบนคลาวด์</b><br><div style="text-align:left;font-size:12.5px;margin-top:10px;line-height:1.9">☁️ คลาวด์ — ${remoteCount} คน · แก้ล่าสุด ${fmt(d.updatedAt)}<br>💻 เครื่องนี้ — ${localCount} คน · แก้ล่าสุด ${fmt(db.updatedAt)}</div>`,[["ใช้ของคลาวด์","btn cy",()=>{applyRemote(d);toast("ใช้ข้อมูลจากคลาวด์แล้ว")}],["รวมข้อมูล","btn ok",()=>{mergeRemote(d,true);toast("รวมข้อมูลเรียบร้อย")}],["ใช้ของเครื่องนี้","btn ghost",()=>{cloudPush();toast("อัปโหลดทับคลาวด์แล้ว")}]])
- }catch(e){if(!silent)toast("ดึงข้อมูลไม่สำเร็จ — "+(e.message||e))}
- finally{pullInFlight=false;setBusy(false);secUI()}
-}
+  if(!localCount){applyRemote(d);return toast(`ดึงข้อมูลสำเร็จ — ${remoteCount} คน`)}
+  if(silent&&d.updatedAt<=(db.sync.lastPull||0)&&d.updatedAt<=db.updatedAt)return;
+  askChoice(`<b>พบข้อมูลบนคลาวด์</b><br>
+   <div style="text-align:left;font-size:12.5px;margin-top:10px;line-height:1.9">
+   ☁️ คลาวด์ — ${remoteCount} คน · แก้ล่าสุด ${fmt(d.updatedAt)}<br>
+   💻 เครื่องนี้ — ${localCount} คน · แก้ล่าสุด ${fmt(db.updatedAt)}</div>`,
+   [["ใช้ของคลาวด์","btn cy",()=>{applyRemote(d);toast("ใช้ข้อมูลจากคลาวด์แล้ว")}],
+    ["รวมข้อมูล","btn ok",()=>{mergeRemote(d);toast("รวมข้อมูลเรียบร้อย")}],
+    ["ใช้ของเครื่องนี้","btn ghost",()=>{cloudPush();toast("อัปโหลดทับคลาวด์แล้ว")}]])}
+ catch(e){setBusy(false);if(!silent)toast("ดึงข้อมูลไม่สำเร็จ — "+e.message)}}
 
 function applyRemote(d){
- const p=d.payload||{},keepRec=db.sec.recPlain;
- db.cfg=p.cfg||db.cfg;
- // สำคัญ: ไม่ยอมให้ payload ว่างมาทับรายชื่อที่มีอยู่ในเครื่อง
- const incoming=decodeClasses(p.classes||{});
- Object.keys(incoming).forEach(k=>{if(Array.isArray(incoming[k])&&incoming[k].length)db.classes[k]=incoming[k]});
- db.trash=p.trash||db.trash;db.log=p.log||db.log;
+ const p=d.payload,keepRec=db.sec.recPlain;
+ db.cfg=p.cfg||db.cfg;db.classes=p.classes||{};db.trash=p.trash||[];db.log=p.log||[];
  if(p.sec&&p.sec.hash)db.sec={...db.sec,...p.sec,recPlain:keepRec};
- db.sync.rev=d.rev||0;db.sync.lastRemoteRev=d.rev||0;db.sync.lastPull=d.updatedAt||Date.now();db.updatedAt=d.updatedAt||Date.now();
- localStorage.setItem("scoreV5",JSON.stringify(db));$("term").value=db.cfg.term||"";render();
-}
-function mergeRemote(d,pushBack=false){
- const R=decodeClasses(d.payload.classes||{});const idx=s=>((s.sid&&String(s.sid).trim())||("n:"+(s.name||"").trim()));const cnt=s=>Object.values(s.s||{}).filter(v=>v!==""&&v!=null).length;
- const before=+db.updatedAt||0,remoteAt=+d.updatedAt||0;
- Object.keys(R).forEach(k=>{const L=db.classes[k]=db.classes[k]||[],map=new Map(L.map(s=>[idx(s),s]));R[k].forEach(rs=>{const key=idx(rs),ls=map.get(key);if(!ls){L.push(rs);map.set(key,rs)}else if(cnt(rs)>cnt(ls)||remoteAt>=before){Object.assign(ls,rs)}})});
- db.trash=[...db.trash,...(d.payload.trash||[])].filter((t,i,a)=>a.findIndex(x=>x.id===t.id)===i);db.log=[...db.log,...(d.payload.log||[])].sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,250);db.sync.lastRemoteRev=d.rev||db.sync.lastRemoteRev||0;db.sync.lastPull=remoteAt||Date.now();db.updatedAt=Math.max(before,remoteAt);localStorage.setItem("scoreV5",JSON.stringify(db));render();if(pushBack)cloudPush(true)
-}
+ db.sync.rev=d.rev||0;db.sync.lastPull=Date.now();db.updatedAt=d.updatedAt||Date.now();
+ addLog("ดึงข้อมูลจากคลาวด์",`จากเครื่อง ${d.device||"-"}`);
+ locked=!!db.sec.on;localStorage.setItem("scoreV5",JSON.stringify(db));$("term").value=db.cfg.term||"";render()}
+
+function mergeRemote(d){
+ const R=d.payload.classes||{};
+ const idx=s=>((s.sid&&String(s.sid).trim())||("n:"+(s.name||"").trim()));
+ const cnt=s=>Object.values(s.s||{}).filter(v=>v!==""&&v!=null).length;
+ Object.keys(R).forEach(k=>{
+  const L=db.classes[k]=db.classes[k]||[],map=new Map(L.map(s=>[idx(s),s]));
+  R[k].forEach(rs=>{const key=idx(rs),ls=map.get(key);
+   if(!ls){L.push(rs);map.set(key,rs)}
+   else if(cnt(rs)>cnt(ls)){Object.assign(ls,rs)}})});
+ db.trash=[...db.trash,...(d.payload.trash||[])].filter((t,i,a)=>a.findIndex(x=>x.id===t.id)===i);
+ db.log=[...db.log,...(d.payload.log||[])].sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,250);
+ addLog("รวมข้อมูลกับคลาวด์",`จากเครื่อง ${d.device||"-"}`);
+ db.sync.lastPull=Date.now();saveNow();render();cloudPush(true)}
+
 async function testConn(){
- readSyncForm();if(db.sync.mode==="off")return toast("เลือกบริการก่อน");setBusy(true);
- try{
-  if(db.sync.mode==="firebase"){
-   await ensureFirebase();
-   const snap=await fbRoomRef.once("value");
-   toast(snap.exists()?"Firebase เชื่อมต่อสำเร็จ ✔":"เชื่อมต่อ Firebase สำเร็จ ✔ แต่ห้องนี้ยังไม่มีข้อมูล");
-  }else{
-   const url=cloudURL(true);if(!url)throw new Error("กรอก URL / รหัสห้องข้อมูลให้ครบ");
-   const r=await fetch(url,{headers:syncHead(),cache:"no-store"});toast(r.ok?"เชื่อมต่อสำเร็จ ✔ พร้อมใช้งาน":"เชื่อมต่อได้ แต่ตอบกลับ HTTP "+r.status)
-  }
- }catch(e){toast("เชื่อมต่อไม่สำเร็จ — "+(e.message||e))}finally{setBusy(false);secUI()}
-}
+ readSyncForm();if(db.sync.mode==="off")return toast("เลือกบริการก่อน");
+ const url=cloudURL();if(!url)return toast("กรอก URL / รหัสห้องข้อมูลให้ครบ");
+ setBusy(true);
+ try{const r=await fetch(cloudURL(true),{headers:syncHead(),cache:"no-store"});
+  setBusy(false);
+  toast(r.ok?"เชื่อมต่อสำเร็จ ✔ พร้อมใช้งาน":"เชื่อมต่อได้ แต่ตอบกลับ HTTP "+r.status)}
+ catch(e){setBusy(false);toast("เชื่อมต่อไม่สำเร็จ — ตรวจ URL หรือสิทธิ์ฐานข้อมูล")}}
+
 function openSync(){
  const s=db.sync;
- $('syMode').value=s.mode;$('syURL').value=s.url;$('syKey').value=s.key||'';
- $('syApiKey').value=s.apiKey||'';$('syAuthDomain').value=s.authDomain||'';$('syProjectId').value=s.projectId||'';
- $('syRoom').value=s.room;$('syDev').value=s.device;$('tgAuto').className='tg'+(s.auto?' on':'');syncModeChange();
- $('syInfo').innerHTML=`สถานะ: <b>${s.mode==='off'?'ปิดอยู่':'เปิดใช้งาน ('+s.mode+')'}</b><br>Firebase: ${fbReady?'เชื่อมต่อแล้ว':'ยังไม่ได้เชื่อมต่อ'}<br>อัปโหลดล่าสุด: ${fmt(s.lastPush)}<br>ดึงข้อมูลล่าสุด: ${fmt(s.lastPull)}`;
- $('syncModal').classList.add('show')
-}
-const closeSync=()=>$('syncModal').classList.remove('show');
-function syncModeChange(){const m=$('syMode').value;$('rowURL').style.display=(m==='firebase'||m==='custom')?'flex':'none';$('rowApiKey').style.display=m==='firebase'?'flex':'none';$('rowAuthDomain').style.display=m==='firebase'?'flex':'none';$('rowProjectId').style.display=m==='firebase'?'flex':'none';$('rowKey').style.display=m==='jsonbin'?'flex':'none';$('rowKey').querySelector('input').placeholder=m==='jsonbin'?'X-Master-Key ของ JSONBin':'';$('syRoom').placeholder=m==='jsonbin'?'Bin ID':'เช่น school-main'}
-function readSyncForm(){const s=db.sync;s.mode=$('syMode').value;s.url=$('syURL').value.trim();s.key=$('syKey').value.trim();s.apiKey=$('syApiKey').value.trim();s.authDomain=$('syAuthDomain').value.trim();s.projectId=$('syProjectId').value.trim();s.room=$('syRoom').value.trim();s.device=$('syDev').value.trim()||'เครื่องนี้'}
-function genRoom(){$('syRoom').value='TCH-'+rndCode(8,4)}
-function toggleAuto(){db.sync.auto=!db.sync.auto;$('tgAuto').className='tg'+(db.sync.auto?' on':'')}
-function saveSync(){readSyncForm();if(db.sync.mode!=='off'&&!db.sync.room)return toast('กรุณาใส่รหัสห้องข้อมูล');closeRealtime();if(fbApp){fbApp.delete().catch(()=>{});fbApp=null;fbAuth=null;fbDB=null;fbRoomRef=null;fbReady=false}saveNow('บันทึกการตั้งค่าซิงก์แล้ว');closeSync();secUI();startRealtime()}
-function shareRoom(){const t=`URL: ${$('syURL').value}\nรหัสห้องข้อมูล: ${$('syRoom').value}`;navigator.clipboard?.writeText(t).then(()=>toast('คัดลอกแล้ว นำไปกรอกที่เครื่องอื่นได้เลย'),()=>toast(t))}
-function scheduleAutoPull(){clearTimeout(pullT);if(db.sync.auto&&db.sync.mode!=='off'&&!streamConnected)pullT=setTimeout(()=>cloudPull(true),30000)}
-function closeRealtime(){clearTimeout(streamRetryT);if(fbUnsub){fbUnsub();fbUnsub=null}if(realtimeStream){realtimeStream.close();realtimeStream=null}streamConnected=false}
-function receiveRealtime(d){
- if(!d||!d.payload)return;const remoteRev=+d.rev||0,seenRev=+db.sync.lastRemoteRev||0,remoteAt=+d.updatedAt||0;if((remoteRev&&remoteRev<=seenRev)||(!remoteRev&&remoteAt<=(+db.sync.lastPull||0)))return;
- const localCount=Object.values(db.classes).reduce((a,v)=>a+v.length,0),remoteCount=Object.values(d.payload.classes||{}).reduce((a,v)=>a+v.length,0);
- if(!localCount){applyRemote(d);toast(`Real-time: ดึง ${remoteCount} คน`);return}
- // ถ้าเป็นการเปลี่ยนแปลงคะแนนจากเครื่องอื่น ให้รวมเข้ากับรายชื่อเดิมทันที
- mergeRemote(d);
-}
-async function startRealtime(){
- closeRealtime();
- if(!db.sync.auto||db.sync.mode!=='firebase')return;
- try{
-  await ensureFirebase();
-  fbUnsub=fbRoomRef.on('value',snap=>{
-   const d=snap.val();
-   if(!d||!d.payload)return;
-   const remoteRev=+d.rev||0,remoteAt=+d.updatedAt||0;
-   if(remoteRev && remoteRev<= (+db.sync.lastRemoteRev||0))return;
-   if(!remoteRev && remoteAt<= (+db.sync.lastPull||0))return;
-   receiveRealtime(d);
-  },err=>{streamConnected=false;toast('Firebase Real-time ขัดข้อง — '+err.message);secUI()});
-  streamConnected=true;secUI();
- }catch(e){streamConnected=false;secUI();scheduleAutoPull();if(e.message)toast('Firebase ยังไม่พร้อม — '+e.message)}
-}
-addEventListener('focus',()=>{if(db.sync.auto&&db.sync.mode!=='off'&&!streamConnected)cloudPull(true)});
+ $("syMode").value=s.mode;$("syURL").value=s.url;$("syKey").value=s.key;
+ $("syRoom").value=s.room;$("syDev").value=s.device;
+ $("tgAuto").className="tg"+(s.auto?" on":"");syncModeChange();
+ $("syInfo").innerHTML=`สถานะ: <b>${s.mode==="off"?"ปิดอยู่":"เปิดใช้งาน ("+s.mode+")"}</b><br>
+  อัปโหลดล่าสุด: ${fmt(s.lastPush)}<br>ดึงข้อมูลล่าสุด: ${fmt(s.lastPull)}`;
+ $("syncModal").classList.add("show")}
+const closeSync=()=>$("syncModal").classList.remove("show");
+function syncModeChange(){const m=$("syMode").value;
+ $("rowURL").style.display=(m==="firebase"||m==="custom")?"flex":"none";
+ $("rowKey").style.display=(m==="off")?"none":"flex";
+ $("rowKey").querySelector("input").placeholder=m==="jsonbin"?"X-Master-Key ของ JSONBin":"เว้นว่างได้ถ้าเป็น test mode";
+ $("syRoom").placeholder=m==="jsonbin"?"Bin ID":"เช่น TCH-A1B2"}
+function readSyncForm(){const s=db.sync;
+ s.mode=$("syMode").value;s.url=$("syURL").value.trim();s.key=$("syKey").value.trim();
+ s.room=$("syRoom").value.trim();s.device=$("syDev").value.trim()||"เครื่องนี้"}
+function genRoom(){$("syRoom").value="TCH-"+rndCode(8,4)}
+function toggleAuto(){db.sync.auto=!db.sync.auto;$("tgAuto").className="tg"+(db.sync.auto?" on":"")}
+function saveSync(){readSyncForm();
+ if(db.sync.mode!=="off"&&!db.sync.room)return toast("กรุณาใส่รหัสห้องข้อมูล");
+ saveNow("บันทึกการตั้งค่าซิงก์แล้ว");closeSync();secUI()}
+function shareRoom(){const t=`URL: ${$("syURL").value}\nรหัสห้องข้อมูล: ${$("syRoom").value}`;
+ navigator.clipboard?.writeText(t).then(()=>toast("คัดลอกแล้ว นำไปกรอกที่เครื่องอื่นได้เลย"),()=>toast(t))}
+addEventListener("focus",()=>{if(db.sync.auto&&db.sync.mode!=="off")cloudPull(true)});
 
 /* ================= ระบบล็อก ================= */
 function secUI(){
@@ -1476,13 +1315,10 @@ $("term").addEventListener("input",e=>{db.cfg.term=e.target.value;save()});
  .forEach(([id,fn])=>$(id).addEventListener("click",e=>{if(e.target.id===id)fn()}));
 addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();closeSettings();closeDash();closeRep();
  closeTrash();closeLog();closeSync();closePin()}});
-addEventListener("beforeunload",()=>{
- if(saveT){clearTimeout(saveT);saveT=null;db.updatedAt=Date.now();localStorage.setItem("scoreV5",JSON.stringify(db));dirtyPush=true}
- if(!dirtyPush||!db.sync.auto||db.sync.mode==="off")return;
- try{const url=cloudURL();if(url)fetch(url,{method:"PUT",headers:syncHead(),body:JSON.stringify(envelope()),keepalive:true})}catch(e){}
-});
+addEventListener("beforeunload",()=>{if(db.sync.auto&&db.sync.mode!=="off")
+ try{navigator.sendBeacon&&0}catch(e){}});
 load();locked=!!db.sec.on;$("term").value=db.cfg.term||"";render();
-if(db.sync.auto&&db.sync.mode!=="off"){setTimeout(()=>cloudPull(true),800);startRealtime()}
+if(db.sync.auto&&db.sync.mode!=="off")setTimeout(()=>cloudPull(true),800);
 </script>
 </body>
 </html>
