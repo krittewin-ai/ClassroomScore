@@ -721,7 +721,7 @@ td input:focus, td select:focus { box-shadow: 0 0 0 4px rgba(105,86,232,.14); }
 const DEF=[{id:"c1",name:"หน่วยที่ 1",max:20},{id:"c2",name:"หน่วยที่ 2",max:20},
 {id:"c3",name:"ชิ้นงาน",max:20},{id:"mid",name:"กลางภาค",max:20},{id:"fin",name:"ปลายภาค",max:20}];
 const SEC0={on:false,hash:"",salt:"",rec:"",recPlain:"",idle:10,ro:false,lockNames:true};
-const SYNC0={mode:"off",url:"",key:"",room:"",device:"",auto:true,rev:0,lastPush:0,lastPull:0};
+const SYNC0={mode:"firebase",url:"https://classroonscore-default-rtdb.asia-southeast1.firebasedatabase.app",key:"",room:"school-main",device:"",auto:true,rev:0,lastPush:0,lastPull:0};
 let db={cfg:{items:JSON.parse(JSON.stringify(DEF)),attMin:80,school:"",teacher:"",term:""},
  sec:{...SEC0},sync:{...SYNC0},classes:{},trash:[],log:[],updatedAt:0};
 let lvl=1,room=1,cur="",pending=null,sort={k:"no",d:1},saveT,pushT;
@@ -747,6 +747,7 @@ function load(){try{const r=JSON.parse(localStorage.getItem("scoreV5"));
  if(r&&r.cfg){db={...db,...r};db.cfg.items=r.cfg.items?.length?r.cfg.items:DEF;
   db.sec={...SEC0,...(r.sec||{})};db.sync={...SYNC0,...(r.sync||{})};
   db.trash=r.trash||[];db.log=r.log||[]}}catch(e){}
+ if(!db.sync.url){db.sync.mode="firebase";db.sync.url="https://classroonscore-default-rtdb.asia-southeast1.firebasedatabase.app";db.sync.room=db.sync.room||"school-main"}
  db.trash=db.trash.filter(t=>t.at>Date.now()-30*864e5);
  if(!db.sync.device)db.sync.device=navigator.platform||"เครื่องนี้"}
 function save(){clearTimeout(saveT);saveT=setTimeout(()=>{db.updatedAt=Date.now();
