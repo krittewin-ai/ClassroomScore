@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ระบบกรอกคะแนน • วิชาคอมพิวเตอร์ v5 (ล็อกชื่อ + ซิงก์คลาวด์)</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ================= UI OVERHAUL ================= */
+:root {
+  --bg: #f4f7f9; --card: #ffffff; --text: #1e293b; --muted: #64748b; --line: #e2e8f0;
+  --brand: #6366f1; --brand-hover: #4f46e5; --accent: #0ea5e9; 
+  --ok: #10b981; --warn: #f59e0b; --bad: #ef4444;
+  --soft: #f8fafc;
+  --shadow-sm: 0 2px 4px rgba(148, 163, 184, 0.08);
+  --shadow: 0 10px 20px -5px rgba(148, 163, 184, 0.12);
+  --shadow-lg: 0 20px 25px -5px rgba(148, 163, 184, 0.15);
+  --r: 16px; --r-sm: 10px;
+}
+[data-theme="dark"] {
+  --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --muted: #94a3b8; --line: #334155;
+  --soft: #141f33; --brand: #818cf8; --brand-hover: #6366f1;
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg); color: var(--text); padding: 24px; min-height: 100vh; 
+  transition: background 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased; letter-spacing: -0.01em;
+}
+.wrap { max-width: 1320px; margin: 0 auto; }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+/* HERO */
+.hero {
+  background: linear-gradient(135deg, var(--card) 0%, var(--soft) 100%); 
+  border: 1px solid var(--line); border-radius: 20px;
+  padding: 28px 36px; margin-bottom: 28px; box-shadow: var(--shadow);
+  display: flex; flex-direction: column; gap: 20px;
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ""; position: absolute; top: -50%; right: -10%;
+  width: 300px; height: 300px; background: radial-gradient(circle, var(--brand) 0%, transparent 70%);
+  opacity: 0.05; border-radius: 50%; pointer-events: none;
+}
+.hero-in { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; z-index: 1; }
+.hero h1 { font-size: 24px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; }
+.hero p { color: var(--muted); font-size: 14.5px; margin-top: 6px; font-weight: 400; }
+
+.badge-term {
+  background: var(--card); border: 1px solid var(--line); padding: 8px 16px;
+  border-radius: var(--r-sm); font-size: 13.5px; display: flex; align-items: center; gap: 8px; font-weight: 600;
+  box-shadow: var(--shadow-sm); transition: 0.2s;
+}
+.badge-term:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+.badge-term input { background: transparent; border: none; color: var(--text); font-family: inherit; width: 78px; font-weight: 700; outline: none; }
+.badge-term input::placeholder { color: var(--muted); font-weight: 500; }
+
+.icon-btn {
+  width: 42px; height: 42px; border-radius: var(--r-sm); border: 1px solid var(--line);
+  background: var(--card); color: var(--text); font-size: 18px; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm);
+}
+.icon-btn:hover { background: var(--soft); transform: translateY(-2px); box-shadow: var(--shadow); }
+.icon-btn:active { transform: scale(0.92); }
+.icon-btn.lockon { color: var(--bad); border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05); }
+.icon-btn.unlocked { color: var(--ok); border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.05); }
+.icon-btn.syncon { color: var(--accent); border-color: rgba(2,132,199,0.3); background: rgba(2,132,199,0.05); }
+@keyframes spin { to { transform: rotate(360deg) } }
+.icon-btn.busy { animation: spin 1s linear infinite; }
+
+.secline { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; font-size: 12.5px; z-index: 1; }
+.chip {
+  background: var(--card); border: 1px solid var(--line); color: var(--muted);
+  padding: 6px 12px; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px; font-weight: 500;
+  box-shadow: var(--shadow-sm); transition: all 0.2s;
+}
+.chip.act { cursor: pointer; color: var(--text); }
+.chip.act:hover { border-color: var(--brand); background: var(--soft); color: var(--brand); transform: translateY(-1px); }
+
+/* LAYOUT & CARDS */
+.grid { display: grid; grid-template-columns: 250px 1fr; gap: 28px; align-items: start; }
+@media(max-width:980px) { .grid { grid-template-columns: 1fr; } }
+.card {
+  background: var(--card); border-radius: var(--r); box-shadow: var(--shadow-sm);
+  border: 1px solid var(--line); padding: 24px; margin-bottom: 28px;
+  transition: box-shadow 0.3s ease;
+}
+.card:hover { box-shadow: var(--shadow); }
+.card h3 { font-size: 16px; font-weight: 700; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; color: var(--text); }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--brand); flex: none; box-shadow: 0 0 8px var(--brand); }
+.side { position: sticky; top: 28px; }
+
+/* LISTS & ROOMS */
+.lv-list { display: flex; flex-direction: column; gap: 8px; }
+.lv {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; border-radius: var(--r-sm);
+  border: 1px solid transparent; background: transparent; cursor: pointer; font-weight: 500; font-size: 14.5px; transition: all 0.2s;
+}
+.lv:hover { background: var(--soft); transform: translateX(2px); }
+.lv.on { background: var(--brand); color: #fff; box-shadow: 0 4px 12px rgba(99,102,241,0.2); font-weight: 600; }
+.lv .cnt { font-size: 11.5px; background: var(--line); color: var(--text); padding: 2px 10px; border-radius: 20px; font-weight: 700; transition: 0.2s; }
+.lv.on .cnt { background: rgba(255,255,255,0.2); color: #fff; }
+
+.rooms { display: flex; flex-wrap: wrap; gap: 8px; }
+.rm {
+  width: 40px; height: 40px; border-radius: var(--r-sm); border: 1px solid var(--line); background: var(--card); color: var(--text);
+  font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm);
+}
+.rm:hover { border-color: var(--brand); color: var(--brand); transform: translateY(-2px); }
+.rm.on { background: var(--text); color: var(--card); border-color: var(--text); box-shadow: var(--shadow); }
+
+/* BUTTONS */
+.bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn {
+  border: none; border-radius: var(--r-sm); padding: 10px 18px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+  background: var(--brand); color: #fff; box-shadow: 0 4px 10px rgba(99,102,241,0.2);
+}
+.btn:hover { background: var(--brand-hover); transform: translateY(-1px); box-shadow: 0 6px 15px rgba(99,102,241,0.3); }
+.btn:active { transform: scale(0.96); }
+.btn.ghost { background: var(--card); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
+.btn.ghost:hover { background: var(--soft); border-color: var(--muted); box-shadow: var(--shadow); }
+.btn.ok { background: var(--ok); box-shadow: 0 4px 10px rgba(16,185,129,0.2); }
+.btn.ok:hover { filter: brightness(1.1); box-shadow: 0 6px 15px rgba(16,185,129,0.3); }
+.btn.cy { background: var(--accent); box-shadow: 0 4px 10px rgba(14,165,233,0.2); }
+.btn.cy:hover { filter: brightness(1.1); }
+.btn.bad { background: var(--bad); box-shadow: 0 4px 10px rgba(239,68,68,0.2); }
+.btn.bad:hover { filter: brightness(1.1); box-shadow: 0 6px 15px rgba(239,68,68,0.3); }
+.btn.sm { padding: 8px 14px; font-size: 13px; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* SEARCH */
+.search { flex: 1; min-width: 200px; position: relative; }
+.search input {
+  width: 100%; padding: 10px 16px 10px 42px; border-radius: var(--r-sm); border: 1px solid var(--line);
+  background: var(--soft); color: var(--text); font-family: inherit; font-size: 14px; outline: none; transition: all 0.2s; 
+}
+.search input:focus { border-color: var(--brand); background: var(--card); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); transform: translateY(-1px); }
+.search span { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 16px; }
+
+/* PROGRESS */
+.prog { height: 8px; background: var(--line); border-radius: 8px; overflow: hidden; margin-top: 18px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
+.prog i { display: block; height: 100%; background: linear-gradient(90deg, var(--brand), var(--accent)); transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+
+/* TABLE */
+.tbl-wrap { overflow: auto; max-height: 65vh; border-radius: var(--r-sm); border: 1px solid var(--line); background: var(--card); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.02); }
+table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; text-align: left; }
+thead th {
+  background: var(--soft); color: var(--muted); font-weight: 700; font-size: 12.5px; padding: 14px 10px; position: sticky; top: 0; z-index: 2;
+  border-bottom: 2px solid var(--line); white-space: nowrap; text-transform: uppercase; letter-spacing: 0.03em;
+  backdrop-filter: blur(8px);
+}
+thead th small { display: block; font-weight: 600; opacity: 0.7; font-size: 11px; text-transform: none; margin-top: 2px; }
+thead th.sortable { cursor: pointer; user-select: none; transition: color 0.2s, background 0.2s; }
+thead th.sortable:hover { color: var(--brand); background: var(--line); }
+tbody td { padding: 8px 10px; text-align: center; border-bottom: 1px solid var(--line); transition: background 0.2s; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: var(--soft); }
+
+.no i {
+  display: inline-flex; width: 28px; height: 28px; align-items: center; justify-content: center; border-radius: 8px;
+  background: var(--line); font-style: normal; font-size: 12px; font-weight: 700; color: var(--muted);
+}
+td input, td select {
+  width: 100%; border: 1px solid transparent; border-radius: 8px; text-align: center; padding: 8px 6px;
+  background: transparent; color: var(--text); font-family: inherit; font-size: 14px; font-weight: 500; outline: none; transition: all 0.2s;
+}
+td input:hover { border-color: var(--line); background: var(--card); }
+td input:focus, td select:focus { border-color: var(--brand); background: var(--card); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); transform: translateY(-1px); }
+td input.txt { text-align: left; padding-left: 10px; }
+td input[readonly] { cursor: pointer; color: var(--muted); font-weight: 400; }
+td input[readonly]:hover { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05); color: var(--bad); }
+td select { cursor: pointer; font-size: 13px; text-align: left; background: var(--soft); }
+body.ro td input:not([readonly]), body.ro td select { pointer-events: none; opacity: 0.6; cursor: not-allowed; }
+body.ro .mini.d { opacity: 0.3; pointer-events: none; }
+
+.sum { font-weight: 700; font-size: 15px; }
+.pill { display: inline-flex; min-width: 50px; justify-content: center; padding: 6px 10px; border-radius: 8px; font-weight: 700; font-size: 12.5px; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05); }
+.p4 { background: rgba(16,185,129,0.15); color: #059669; }
+.p3 { background: rgba(59,130,246,0.15); color: #2563eb; }
+.p2 { background: rgba(245,158,11,0.15); color: #d97706; }
+.p1 { background: rgba(249,115,22,0.15); color: #ea580c; }
+.p0 { background: rgba(239,68,68,0.15); color: #dc2626; }
+.px { background: rgba(100,116,139,0.15); color: #475569; }
+[data-theme="dark"] .p4 { color: #34d399; } [data-theme="dark"] .p3 { color: #60a5fa; }
+[data-theme="dark"] .p2 { color: #fbbf24; } [data-theme="dark"] .p1 { color: #fb923c; }
+[data-theme="dark"] .p0 { color: #f87171; } [data-theme="dark"] .px { color: #94a3b8; }
+
+.rk { font-weight: 700; color: var(--muted); font-size: 13px; }
+.rk.top { color: var(--warn); font-size: 14.5px; text-shadow: 0 2px 4px rgba(245,158,11,0.3); }
+.act { display: flex; gap: 8px; justify-content: center; }
+.mini {
+  width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--muted);
+  cursor: pointer; font-size: 14px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm);
+}
+.mini:hover { background: var(--soft); color: var(--text); transform: translateY(-1px); }
+.mini.d:hover { background: var(--bad); color: #fff; border-color: var(--bad); box-shadow: 0 4px 8px rgba(239,68,68,0.2); }
+
+.empty { padding: 60px 20px; text-align: center; color: var(--muted); }
+.empty div { font-size: 48px; margin-bottom: 16px; opacity: 0.6; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
+
+/* STATS */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; }
+.st { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 18px; display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow-sm); transition: 0.3s; }
+.st:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.st .ic { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; font-size: 20px; flex: none; }
+.st b { display: block; font-size: 22px; font-weight: 700; line-height: 1.2; }
+.st span { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+
+.dist { display: flex; flex-direction: column; gap: 12px; }
+.dr { display: flex; align-items: center; gap: 14px; font-size: 13.5px; }
+.dr .lb { width: 60px; font-weight: 700; color: var(--muted); }
+.dr .track { flex: 1; height: 10px; background: var(--line); border-radius: 10px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
+.dr .fill { height: 100%; border-radius: 10px; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+.dr .vl { width: 38px; text-align: right; font-weight: 700; }
+
+textarea {
+  width: 100%; border: 1px solid var(--line); border-radius: var(--r-sm); padding: 14px; background: var(--soft); color: var(--text);
+  font-family: inherit; font-size: 14px; outline: none; resize: vertical; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s;
+}
+textarea:focus { border-color: var(--brand); background: var(--card); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+.hide { display: none; }
+
+/* TOAST & MODAL */
+#toast {
+  position: fixed; bottom: 32px; right: 32px; background: var(--text); color: var(--card);
+  border-radius: 12px; padding: 14px 20px; box-shadow: var(--shadow-lg); font-size: 14.5px; font-weight: 600; opacity: 0;
+  transform: translateY(20px) scale(0.95); pointer-events: none; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 130; display: flex; align-items: center; gap: 14px; max-width: 88vw;
+}
+#toast.show { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+#toast button { background: rgba(255,255,255,0.15); border: none; color: #fff; border-radius: 6px; padding: 4px 10px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+#toast button:hover { background: rgba(255,255,255,0.25); }
+
+.modal { position: fixed; inset: 0; background: rgba(15,23,42,0.4); backdrop-filter: blur(8px); display: none; place-items: center; z-index: 100; padding: 20px; opacity: 0; transition: opacity 0.3s; }
+.modal.show { display: grid; opacity: 1; animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+@keyframes modalFadeIn { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+.modal .box {
+  background: var(--card); border-radius: 24px; padding: 32px; max-width: 520px; width: 100%; box-shadow: var(--shadow-lg);
+  max-height: 90vh; overflow: auto; border: 1px solid rgba(255,255,255,0.1);
+}
+.modal .box.wide { max-width: 850px; }
+.modal .box.narrow { max-width: 400px; }
+.modal h4 { font-size: 20px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+.modal .sub { font-size: 14px; color: var(--muted); margin-bottom: 24px; line-height: 1.6; }
+
+.frow { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
+.frow input, .frow select {
+  flex: 1; border: 1px solid var(--line); border-radius: var(--r-sm); padding: 10px 14px; background: var(--soft);
+  color: var(--text); font-family: inherit; font-size: 14px; font-weight: 500; outline: none; min-width: 0; transition: all 0.2s;
+}
+.frow input:focus, .frow select:focus { border-color: var(--brand); background: var(--card); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+.frow input.w80 { flex: none; width: 90px; text-align: center; }
+.frow label { font-size: 14px; color: var(--text); width: 120px; font-weight: 600; flex: none; }
+
+.pin {
+  width: 100%; text-align: center; letter-spacing: 16px; font-size: 28px; font-weight: 700; padding: 16px;
+  border: 2px solid var(--line); border-radius: 16px; background: var(--soft); color: var(--text); outline: none; font-family: inherit; transition: all 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+}
+.pin:focus { border-color: var(--brand); background: var(--card); box-shadow: 0 0 0 4px rgba(99,102,241,0.15); }
+.pin.err { border-color: var(--bad); animation: shake 0.4s; background: rgba(239,68,68,0.05); }
+@keyframes shake { 25% { transform: translateX(-8px) } 75% { transform: translateX(8px) } }
+
+.sw {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; background: var(--soft);
+  border: 1px solid var(--line); border-radius: 16px; margin-bottom: 12px; font-size: 14px; transition: 0.2s;
+}
+.sw:hover { border-color: var(--muted); }
+.sw small { display: block; color: var(--muted); font-size: 12px; margin-top: 6px; }
+.tg { width: 50px; height: 28px; border-radius: 30px; background: var(--line); position: relative; cursor: pointer; flex: none; transition: 0.3s; border: none; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
+.tg::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+.tg.on { background: var(--brand); } .tg.on::after { left: 25px; }
+
+.lst { display: flex; flex-direction: column; gap: 10px; }
+.li { display: flex; align-items: center; gap: 14px; padding: 14px 18px; background: var(--soft); border: 1px solid var(--line); border-radius: 12px; font-size: 14px; transition: 0.2s; }
+.li:hover { border-color: var(--muted); background: var(--card); transform: translateX(2px); }
+.li .g { flex: 1; min-width: 0; }
+.li b { display: block; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+.li span { font-size: 12px; color: var(--muted); margin-top: 4px; display: block; }
+
+.code { background: var(--line); border-radius: 12px; padding: 16px; text-align: center; font-size: 20px; font-weight: 700; letter-spacing: 3px; margin: 16px 0; word-break: break-all; cursor: pointer; color: var(--text); box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+.warnbox { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); border-left: 4px solid var(--warn); border-radius: 10px; padding: 16px; font-size: 13.5px; line-height: 1.6; margin-bottom: 20px; color: var(--text); }
+.infobox { background: rgba(14,165,233,0.08); border: 1px solid rgba(14,165,233,0.2); border-left: 4px solid var(--accent); border-radius: 10px; padding: 16px; font-size: 13.5px; line-height: 1.6; margin-bottom: 20px; color: var(--text); }
+.infobox ol { margin: 10px 0 0 24px; } .infobox code { background: var(--line); padding: 3px 8px; border-radius: 6px; font-size: 12px; color: var(--text); font-weight: 600; }
+
+.rep-head { text-align: center; border-bottom: 2px solid var(--line); padding-bottom: 20px; margin-bottom: 24px; }
+.rep-head h2 { font-size: 24px; font-weight: 700; color: var(--text); }
+.rep-head p { font-size: 14px; color: var(--muted); margin-top: 8px; font-weight: 500; }
+.rep-tbl { width: 100%; font-size: 14.5px; margin: 20px 0; border-collapse: collapse; }
+.rep-tbl td { padding: 12px 10px; border-bottom: 1px solid var(--line); }
+.rep-tbl td:first-child { text-align: left; color: var(--muted); font-weight: 500; }
+.rep-tbl td:last-child { text-align: right; font-weight: 700; color: var(--text); }
+.rep-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 24px 0; }
+.rep-grid div { background: var(--soft); border: 1px solid var(--line); border-radius: 16px; padding: 20px; text-align: center; }
+.rep-grid b { display: block; font-size: 26px; line-height: 1.2; text-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.rep-grid span { font-size: 12.5px; color: var(--muted); font-weight: 600; margin-top: 6px; display: block; }
+.sign { margin-top: 40px; text-align: center; font-size: 14px; color: var(--muted); line-height: 2; font-weight: 500; }
+
+@media print {
+  body { background: #fff; padding: 0; color: #000; }
+  .hero, .side, .no-print, #toast { display: none !important; }
+  .grid { grid-template-columns: 1fr; display: block; }
+  .card { box-shadow: none; border: none; padding: 0; margin-bottom: 24px; }
+  .tbl-wrap { max-height: none; overflow: visible; border: none; box-shadow: none; }
+  table { font-size: 12pt; }
+  thead th { color: #000; border-bottom: 2px solid #000; padding: 10px 6px; background: transparent !important; filter: none !important; backdrop-filter: none; }
+  tbody td { border-bottom: 1px solid #ddd; padding: 8px 6px; }
+  td input { color: #000; font-size: 12pt; border: none !important; background: transparent !important; box-shadow: none !important; }
+  .pill { color: #000 !important; font-weight: bold; background: none !important; padding: 0; border: none; box-shadow: none; }
+  body.rep .wrap { display: none; }
+  body.rep .modal { position: static; display: block; background: none; backdrop-filter: none; padding: 0; opacity: 1; animation: none; }
+  body.rep .modal .box { box-shadow: none; max-width: 100%; max-height: none; padding: 0; border: none; background: transparent; }
+}
+
+/* ===== POLISHED VISUAL LAYER ===== */
+:root {
+  --brand-deep: #4338ca;
+  --ring: rgba(99,102,241,.22);
+}
+body {
+  background:
+    radial-gradient(circle at 8% 0%, rgba(129,140,248,.16), transparent 28rem),
+    radial-gradient(circle at 100% 12%, rgba(14,165,233,.12), transparent 24rem),
+    var(--bg);
+}
+.wrap { position: relative; }
+.hero {
+  background: linear-gradient(135deg, rgba(255,255,255,.96), rgba(238,242,255,.9));
+  border: 1px solid rgba(129,140,248,.25);
+  box-shadow: 0 18px 45px rgba(79,70,229,.10), var(--shadow);
+}
+[data-theme="dark"] .hero {
+  background: linear-gradient(135deg, rgba(30,41,59,.98), rgba(30,41,59,.82));
+  border-color: rgba(129,140,248,.28);
+}
+.hero h1 { font-size: clamp(20px, 2.1vw, 28px); }
+.hero h1::first-letter { filter: drop-shadow(0 3px 5px rgba(79,70,229,.25)); }
+.card { border-color: rgba(148,163,184,.22); box-shadow: 0 8px 22px rgba(15,23,42,.045); }
+.card:hover { transform: translateY(-1px); }
+.btn, .icon-btn, .rm, .lv { -webkit-tap-highlight-color: transparent; }
+.btn:focus-visible, .icon-btn:focus-visible, .rm:focus-visible, .lv:focus-visible,
+input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+.search input { background: color-mix(in srgb, var(--soft) 88%, transparent); }
+.tbl-wrap { box-shadow: 0 12px 28px rgba(15,23,42,.05); }
+tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--soft) 34%, transparent); }
+tbody tr:nth-child(even):hover td, tbody tr:hover td { background: color-mix(in srgb, var(--brand) 6%, var(--soft)); }
+.prog { height: 10px; background: color-mix(in srgb, var(--line) 80%, var(--brand) 20%); }
+.prog i { background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 48%, #06b6d4 100%); }
+.badge-term { border-color: rgba(99,102,241,.25); }
+.secline .chip { backdrop-filter: blur(8px); }
+@media(max-width:680px) {
+  body { padding: 12px; }
+  .hero { padding: 20px; border-radius: 18px; }
+  .hero-in { align-items: flex-start; }
+  .hero-in > div:last-child { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
+  .badge-term { flex: 1 1 100%; }
+  .grid { gap: 14px; }
+  .card { padding: 16px; margin-bottom: 14px; }
+  .bar .btn { flex: 1 1 auto; justify-content: center; }
+  .search { flex-basis: 100%; }
+  .tbl-wrap { margin: 0 -4px; }
+  .modal .box { padding: 22px 18px; border-radius: 20px; }
+  .frow { align-items: stretch; flex-wrap: wrap; }
+  .frow label { width: 100%; }
+}
+
+
+/* ===== PREMIUM DASHBOARD OVERHAUL ===== */
+:root {
+  --bg: #f4f6ff;
+  --card: rgba(255,255,255,.88);
+  --text: #172033;
+  --muted: #718096;
+  --line: rgba(148,163,184,.20);
+  --soft: #f7f8fc;
+  --brand: #6956e8;
+  --brand-hover: #5744d4;
+  --accent: #20b9d2;
+  --ok: #19b887;
+  --warn: #f2a93b;
+  --bad: #ec5b70;
+  --shadow-sm: 0 8px 22px rgba(44,42,96,.06);
+  --shadow: 0 18px 42px rgba(44,42,96,.10);
+  --shadow-lg: 0 28px 70px rgba(25,27,70,.18);
+  --r: 20px; --r-sm: 13px;
+}
+[data-theme="dark"] {
+  --bg: #0b1020;
+  --card: rgba(23,31,57,.88);
+  --text: #f3f6ff;
+  --muted: #9ba7c1;
+  --line: rgba(148,163,184,.16);
+  --soft: #131b31;
+  --brand: #8b7cf4;
+  --brand-hover: #7666e9;
+  --accent: #36cfe5;
+  --shadow-sm: 0 8px 22px rgba(0,0,0,.18);
+  --shadow: 0 18px 42px rgba(0,0,0,.28);
+  --shadow-lg: 0 28px 70px rgba(0,0,0,.42);
+}
+html { background: var(--bg); }
+body {
+  padding: 22px;
+  background:
+    radial-gradient(ellipse 52% 38% at 0% 0%, rgba(105,86,232,.19), transparent 75%),
+    radial-gradient(ellipse 45% 34% at 100% 8%, rgba(32,185,210,.15), transparent 75%),
+    linear-gradient(140deg, var(--bg), color-mix(in srgb, var(--bg) 82%, #e4e7ff));
+}
+.wrap { max-width: 1440px; }
+.hero {
+  min-height: 178px; padding: 28px 34px 24px;
+  border: 1px solid rgba(255,255,255,.58);
+  background:
+    linear-gradient(120deg, rgba(36,34,88,.98) 0%, rgba(75,59,165,.96) 55%, rgba(20,152,181,.95) 100%);
+  color: #fff; box-shadow: 0 22px 55px rgba(63,52,157,.25);
+  border-radius: 26px; overflow: hidden;
+}
+.hero::after {
+  content: ""; position: absolute; width: 390px; height: 390px; right: 2%; top: -72%;
+  border-radius: 50%; border: 1px solid rgba(255,255,255,.17);
+  box-shadow: 0 0 0 28px rgba(255,255,255,.035), 0 0 0 58px rgba(255,255,255,.025);
+  pointer-events: none;
+}
+.hero::before { width: 520px; height: 520px; right: -18%; top: -120%; opacity: .12; background: #fff; }
+.hero h1, .hero p { color: #fff; }
+.hero h1 { font-size: clamp(23px, 2.4vw, 32px); letter-spacing: -.035em; text-shadow: 0 3px 18px rgba(0,0,0,.18); }
+.hero p { opacity: .78; font-size: 14px; }
+.badge-term { background: rgba(255,255,255,.13); border-color: rgba(255,255,255,.27); color: #fff; backdrop-filter: blur(12px); }
+.badge-term input { color: #fff; }
+.badge-term input::placeholder { color: rgba(255,255,255,.65); }
+.hero .icon-btn { background: rgba(255,255,255,.13); border-color: rgba(255,255,255,.24); color: #fff; box-shadow: none; backdrop-filter: blur(12px); }
+.hero .icon-btn:hover { background: rgba(255,255,255,.25); border-color: rgba(255,255,255,.45); }
+.secline { margin-top: 2px; }
+.secline .chip { background: rgba(255,255,255,.11); color: rgba(255,255,255,.88); border-color: rgba(255,255,255,.18); box-shadow: none; backdrop-filter: blur(10px); }
+.grid { grid-template-columns: 268px 1fr; gap: 24px; }
+.card { border-radius: var(--r); background: var(--card); border-color: var(--line); box-shadow: var(--shadow-sm); backdrop-filter: blur(18px); }
+.card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+.card h3 { letter-spacing: -.02em; }
+.side .card { overflow: hidden; position: relative; }
+.side .card::before { content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 3px; background: linear-gradient(90deg, var(--brand), var(--accent)); opacity: .8; }
+.side .card:nth-child(2)::before { background: linear-gradient(90deg, var(--accent), var(--ok)); }
+.side .card:nth-child(3)::before { background: linear-gradient(90deg, var(--ok), var(--warn)); }
+.lv { padding: 13px 15px; border-radius: 12px; }
+.lv.on { background: linear-gradient(110deg, var(--brand), #8b78f2); box-shadow: 0 8px 18px rgba(105,86,232,.25); }
+.rm { border-radius: 12px; }
+.rm.on { background: #1d2640; color: #fff; border-color: #1d2640; }
+.btn { border-radius: 12px; padding: 11px 17px; box-shadow: 0 8px 16px rgba(105,86,232,.16); }
+.btn:hover { box-shadow: 0 12px 24px rgba(105,86,232,.25); }
+.btn.ghost { box-shadow: none; background: color-mix(in srgb, var(--card) 82%, var(--soft)); }
+.btn.ok { box-shadow: 0 8px 16px rgba(25,184,135,.18); }
+.btn.cy { box-shadow: 0 8px 16px rgba(32,185,210,.18); }
+.search input { border-radius: 12px; background: var(--soft); border-color: var(--line); padding-top: 11px; padding-bottom: 11px; }
+.prog { height: 11px; border-radius: 99px; margin-top: 20px; }
+.prog i { background: linear-gradient(90deg, #6956e8, #a178f4 52%, #20c4d9); }
+.tbl-wrap { border-radius: 16px; border-color: var(--line); box-shadow: 0 10px 30px rgba(40,45,100,.06); }
+thead th { padding: 16px 11px; background: color-mix(in srgb, var(--soft) 90%, var(--brand)); color: var(--muted); }
+tbody td { padding: 10px 10px; }
+tbody tr:hover td { background: color-mix(in srgb, var(--brand) 7%, var(--soft)); }
+.no i { background: color-mix(in srgb, var(--brand) 12%, var(--soft)); color: var(--brand); }
+td input:focus, td select:focus { box-shadow: 0 0 0 4px rgba(105,86,232,.14); }
+.pill { border-radius: 99px; padding: 7px 13px; }
+.st { border-radius: 16px; padding: 20px; background: linear-gradient(145deg, color-mix(in srgb, var(--card) 90%, #fff), var(--soft)); }
+.st .ic { border-radius: 14px; }
+.st b { letter-spacing: -.04em; }
+.dist .track { height: 12px; border-radius: 99px; }
+.modal { background: rgba(18,21,48,.56); }
+.modal .box { border-radius: 24px; box-shadow: var(--shadow-lg); border-color: rgba(255,255,255,.18); }
+.infobox, .warnbox { border-radius: 14px; }
+#toast { border-radius: 16px; backdrop-filter: blur(16px); }
+@media(max-width:980px) { .grid { grid-template-columns: 1fr; } .side { position: static; display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; } .side .card { margin-bottom: 0; } .side .card:nth-child(3) { grid-column: 1 / -1; } }
+@media(max-width:680px) {
+  body { padding: 10px; }
+  .hero { padding: 22px 18px 19px; min-height: auto; border-radius: 21px; }
+  .hero-in { gap: 18px; }
+  .hero-in > div:last-child { gap: 7px !important; }
+  .hero .icon-btn { width: 38px; height: 38px; }
+  .grid { gap: 12px; }
+  .side { display: block; }
+  .side .card { margin-bottom: 12px; }
+  .card { padding: 14px; border-radius: 17px; }
+  .card h3 { font-size: 15px; }
+  .bar { gap: 7px; }
+  .bar .btn { padding: 10px 12px; font-size: 13px; }
+  .tbl-wrap { margin: 0 -2px; }
+}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+ <div class="hero">
+  <div class="hero-in">
+   <div><h1>💻 ระบบกรอกคะแนน <span style="font-weight:400;opacity:.84">วิชาคอมพิวเตอร์</span></h1>
+   <p>ม.1–ม.6 · ปกป้องข้อมูล · ซิงก์คะแนนข้ามเครื่องด้วย Firebase</p></div>
+   <div style="display:flex;gap:10px;align-items:center">
+    <div class="badge-term">📅 ภาคเรียน <input id="term" placeholder="1/2569"></div>
+    <button class="icon-btn" id="syncBtn" onclick="openSync()" title="ซิงก์ข้อมูล">☁️</button>
+    <button class="icon-btn" id="lockBtn" onclick="lockBtnClick()" title="สถานะการล็อก">🔓</button>
+    <button class="icon-btn" onclick="openTrash()" title="ถังขยะ">🗑️</button>
+    <button class="icon-btn" onclick="openDash()" title="ภาพรวมทุกห้อง">📈</button>
+    <button class="icon-btn" onclick="openSettings()" title="ตั้งค่า">⚙️</button>
+    <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="สลับธีม">🌙</button>
+   </div>
+  </div>
+  <div class="secline" id="secLine"></div>
+ </div>
+
+ <div class="grid">
+  <div class="side">
+   <div class="card"><h3><span class="dot"></span>ระดับชั้น</h3><div class="lv-list" id="lvList"></div></div>
+   <div class="card"><h3><span class="dot" style="background:var(--accent)"></span>ห้องเรียน <small style="margin-left:auto;color:var(--muted);font-size:11px;font-weight:600">2 ห้อง</small></h3><div class="rooms" id="rmList"></div></div>
+   <div class="card no-print"><h3><span class="dot" style="background:var(--ok)"></span>ข้อมูล</h3>
+    <div style="display:flex;flex-direction:column;gap:7px">
+     <button class="btn cy sm" onclick="cloudPush()">⬆️ อัปโหลดขึ้นคลาวด์</button>
+     <button class="btn ghost sm" onclick="cloudPull()">⬇️ ดึงจากคลาวด์</button>
+     <button class="btn ghost sm" onclick="fileCSV.click()">📥 นำเข้า CSV</button>
+     <button class="btn ghost sm" onclick="backup()">💾 สำรองเป็นไฟล์</button>
+     <button class="btn ghost sm" onclick="guard('กู้คืนข้อมูล',()=>fileJSON.click())">♻️ กู้คืนจากไฟล์</button>
+     <button class="btn ghost sm" onclick="openLog()">📜 ประวัติการทำรายการ</button>
+    </div>
+   </div>
+  </div>
+
+  <div>
+   <div class="card no-print" style="border-top:3px solid var(--brand)">
+    <div class="bar">
+     <button class="btn" onclick="addRow()">➕ เพิ่มนักเรียน</button>
+     <button class="btn ghost" onclick="togglePaste()">📋 วางรายชื่อ</button>
+     <button class="btn ok" onclick="exportCSV()">⬇️ ส่งออก CSV</button>
+     <button class="btn ghost" onclick="window.print()">🖨️ พิมพ์ตาราง</button>
+     <button class="btn bad" onclick="askClear()">🔐 ล้างห้องนี้</button>
+     <div class="search"><span>🔍</span><input id="search" placeholder="ค้นหาชื่อ / เลขที่..."></div>
+    </div>
+    <div class="prog"><i id="progBar" style="width:0%"></i></div>
+    <div style="font-size:11.5px;color:var(--muted);margin-top:6px" id="progTxt"></div>
+    <div id="pasteBox" class="hide" style="margin-top:14px">
+     <textarea id="pasteArea" rows="5" placeholder="วางรายชื่อ บรรทัดละ 1 คน (คัดลอกจาก Excel ได้)&#10;12345&#9;เด็กชายสมชาย ใจดี&#10;เด็กหญิงสมหญิง รักเรียน"></textarea>
+     <div class="bar" style="margin-top:10px">
+      <button class="btn" onclick="importNames()">เพิ่มทั้งหมด</button>
+      <button class="btn ghost" onclick="togglePaste()">ยกเลิก</button></div>
+    </div>
+   </div>
+
+   <div class="card">
+    <h3><span class="dot"></span><span id="title"></span>
+     <span style="margin-left:auto;font-size:11.5px;color:var(--muted);font-weight:400" class="no-print" id="hintTxt"></span></h3>
+    <div class="tbl-wrap"><table><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table></div>
+   </div>
+
+   <div class="card">
+    <h3><span class="dot" style="background:var(--ok)"></span>สรุปผลการเรียน</h3>
+    <div class="stats" id="stats"></div>
+    <h3 style="margin:20px 0 12px"><span class="dot" style="background:var(--warn)"></span>การกระจายของเกรด</h3>
+    <div class="dist" id="dist"></div>
+   </div>
+  </div>
+ </div>
+</div>
+
+<input type="file" id="fileCSV" accept=".csv,.txt" class="hide">
+<input type="file" id="fileJSON" accept=".json" class="hide">
+<div id="toast"></div>
+
+<div class="modal" id="modal"><div class="box narrow" style="text-align:center">
+ <div style="font-size:40px" id="mIcon">⚠️</div><h4 id="mTitle">ยืนยันการทำรายการ</h4>
+ <p class="sub" id="mText" style="margin:8px 0 18px"></p>
+ <input id="mType" class="hide" style="width:100%;border:1px solid var(--line);border-radius:10px;
+  padding:11px;background:var(--soft);color:var(--text);font-family:inherit;text-align:center;font-weight:600;outline:none;margin-bottom:16px">
+ <div style="display:flex;gap:9px;justify-content:center;flex-wrap:wrap" id="mBtns">
+  <button class="btn bad" id="mYes" onclick="confirmYes()">ยืนยัน</button>
+  <button class="btn ghost" onclick="closeModal()">ยกเลิก</button></div>
+</div></div>
+
+<div class="modal" id="pinModal"><div class="box narrow" style="text-align:center">
+ <div style="font-size:40px" id="pinIcon">🔐</div>
+ <h4 id="pinTitle">ใส่รหัส PIN</h4>
+ <p class="sub" id="pinSub" style="margin:6px 0 16px"></p>
+ <input id="pinIn" class="pin" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="••••">
+ <div id="pinMsg" style="font-size:12.5px;color:var(--bad);height:18px;margin-top:8px"></div>
+ <div style="display:flex;gap:9px;justify-content:center;margin-top:10px">
+  <button class="btn" onclick="pinSubmit()">ตกลง</button>
+  <button class="btn ghost" onclick="closePin()">ยกเลิก</button></div>
+ <div style="margin-top:14px"><a href="#" id="forgot" onclick="forgotPin();return false"
+  style="font-size:12px;color:var(--muted)">ลืมรหัส PIN?</a></div>
+</div></div>
+
+<div class="modal" id="syncModal"><div class="box">
+ <h4>☁️ ซิงก์ข้อมูลข้ามเครื่อง</h4>
+ <p class="sub">ตั้งค่าครั้งเดียว แล้วเปิดที่เครื่องไหนก็เห็นข้อมูลเดียวกัน</p>
+ <div class="infobox">
+  <b>วิธีตั้งค่าแบบฟรี (Firebase — ใช้เวลา ~3 นาที)</b><div style="margin-top:10px;color:var(--warn)"><b>คำเตือน:</b> test mode เหมาะสำหรับทดสอบเท่านั้น ควรตั้ง Firebase Authentication + Database Rules ก่อนใช้งานจริง</div>
+  <ol>
+   <li>เข้า <code>console.firebase.google.com</code> → สร้างโปรเจกต์</li>
+   <li>เมนู <b>Build → Realtime Database</b> → Create Database (เลือก <b>test mode เฉพาะตอนทดลอง</b>)</li>
+   <li>คัดลอก URL ที่ขึ้นต้นด้วย <code>https://xxxx.firebaseio.com</code> หรือ <code>...firebasedatabase.app</code></li>
+   <li>วาง URL ด้านล่าง → กด <b>ทดสอบการเชื่อมต่อ</b> → <b>อัปโหลด</b> (ข้อมูลจะอยู่ที่ <code>/scoreapp/{รหัสห้อง}</code>)</li>
+   <li>ที่เครื่องอื่น เปิดไฟล์เดียวกัน ใส่ URL + <b>รหัสห้องข้อมูล</b> ให้ตรงกัน แล้วกด <b>ดึงข้อมูล</b></li>
+  </ol>
+ </div>
+ <div class="frow"><label>บริการ</label>
+  <select id="syMode" onchange="syncModeChange()">
+   <option value="off">ปิดการซิงก์</option>
+   <option value="firebase">Firebase Realtime DB</option>
+   <option value="jsonbin">JSONBin.io</option>
+   <option value="custom">REST API ของตัวเอง</option>
+  </select></div>
+ <div class="frow" id="rowURL"><label>URL ฐานข้อมูล</label><input id="syURL" placeholder="https://xxxx.firebasedatabase.app"></div>
+ <div class="frow" id="rowKey"><label>คีย์ / Secret</label><input id="syKey" placeholder="เว้นว่างได้ถ้าเป็น test mode"></div>
+ <div class="frow"><label>รหัสห้องข้อมูล</label><input id="syRoom" placeholder="เช่น TCH-A1B2">
+  <button class="btn ghost sm" onclick="genRoom()">สุ่ม</button></div>
+ <div class="frow"><label>ชื่อเครื่องนี้</label><input id="syDev" placeholder="เช่น คอมที่โรงเรียน"></div>
+ <div class="sw"><div><b>ซิงก์อัตโนมัติ</b><small>อัปโหลดเองหลังแก้ไข และดึงข้อมูลเมื่อเปิดเว็บ</small></div>
+  <button class="tg" id="tgAuto" onclick="toggleAuto()"></button></div>
+ <div id="syInfo" style="font-size:12px;color:var(--muted);margin:12px 0;line-height:1.8"></div>
+ <div class="bar" style="margin-top:6px">
+  <button class="btn ghost sm" onclick="testConn()">🔌 ทดสอบการเชื่อมต่อ</button>
+  <button class="btn cy sm" onclick="cloudPush()">⬆️ อัปโหลด</button>
+  <button class="btn ok sm" onclick="cloudPull()">⬇️ ดึงข้อมูล</button>
+  <button class="btn ghost sm" onclick="shareRoom()">🔗 คัดลอกรหัสห้อง</button></div>
+ <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:20px">
+  <button class="btn ghost" onclick="closeSync()">ปิด</button>
+  <button class="btn" onclick="saveSync()">บันทึกการตั้งค่า</button></div>
+</div></div>
+
+<div class="modal" id="setModal"><div class="box">
+ <h4>⚙️ ตั้งค่าระบบ</h4><p class="sub">ความปลอดภัย โครงสร้างคะแนน และข้อมูลหัวกระดาษ</p>
+
+ <h4 style="font-size:15px;margin-bottom:10px">🔐 ความปลอดภัย</h4>
+ <div class="sw"><div><b>ล็อกด้วยรหัส PIN</b><small>ต้องใส่ PIN ก่อนลบหรือแก้โครงสร้าง</small></div>
+  <button class="tg" id="tgSec" onclick="toggleSec()"></button></div>
+ <div class="sw"><div><b>ล็อกชื่อ–สกุล และรหัสนักเรียน</b><small>กันแก้ชื่อโดยไม่ตั้งใจ ต้องใส่ PIN ก่อนแก้</small></div>
+  <button class="tg" id="tgName" onclick="toggleNameLock()"></button></div>
+ <div class="sw"><div><b>โหมดอ่านอย่างเดียว</b><small>ล็อกช่องกรอกคะแนนทั้งหมด</small></div>
+  <button class="tg" id="tgRO" onclick="toggleRO()"></button></div>
+ <div class="frow"><label>ล็อกอัตโนมัติ</label><input id="sIdle" class="w80" type="number" min="1" max="120">
+  <span style="font-size:12.5px;color:var(--muted)">นาที (เมื่อไม่มีการใช้งาน)</span></div>
+ <div class="bar" style="margin:10px 0 20px">
+  <button class="btn ghost sm" onclick="changePin()">🔑 เปลี่ยนรหัส PIN</button>
+  <button class="btn ghost sm" onclick="showRecovery()">📄 ดูรหัสกู้คืน</button></div>
+
+ <h4 style="font-size:15px;margin-bottom:10px">🏫 ข้อมูลหัวกระดาษ</h4>
+ <div class="frow"><label>โรงเรียน</label><input id="sSchool" placeholder="โรงเรียน..."></div>
+ <div class="frow"><label>ครูผู้สอน</label><input id="sTeacher" placeholder="ชื่อครู..."></div>
+ <div class="frow"><label>เกณฑ์เวลาเรียน</label><input id="sAtt" class="w80" type="number">
+  <span style="font-size:12.5px;color:var(--muted)">% (ต่ำกว่านี้ = มส)</span></div>
+
+ <h4 style="margin:20px 0 4px;font-size:15px">📋 รายการคะแนน</h4>
+ <p class="sub" style="margin-bottom:10px">รวมเต็ม <b id="sTotal">100</b> คะแนน (คิดเกรดจาก % อัตโนมัติ)</p>
+ <div id="itemList"></div>
+ <button class="btn ghost sm" onclick="addItem()" style="margin-top:8px">➕ เพิ่มรายการ</button>
+ <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:22px">
+  <button class="btn ghost" onclick="closeSettings()">ยกเลิก</button>
+  <button class="btn" onclick="saveSettings()">บันทึกการตั้งค่า</button></div>
+</div></div>
+
+<div class="modal" id="trashModal"><div class="box">
+ <h4>🗑️ ถังขยะ</h4><p class="sub">รายชื่อที่ลบไปจะเก็บไว้ 30 วัน กู้คืนได้ตลอด</p>
+ <div class="lst" id="trashBody"></div>
+ <div style="display:flex;gap:9px;justify-content:space-between;margin-top:18px">
+  <button class="btn bad sm" onclick="emptyTrash()">ล้างถังขยะถาวร</button>
+  <button class="btn ghost" onclick="closeTrash()">ปิด</button></div>
+</div></div>
+
+<div class="modal" id="logModal"><div class="box">
+ <h4>📜 ประวัติการทำรายการ</h4><p class="sub">บันทึก 250 รายการล่าสุด (รวมการแก้ไขชื่อ)</p>
+ <div class="lst" id="logBody"></div>
+ <div style="text-align:right;margin-top:18px"><button class="btn ghost" onclick="closeLog()">ปิด</button></div>
+</div></div>
+
+<div class="modal" id="dashModal"><div class="box wide">
+ <h4>📈 ภาพรวมทุกห้องเรียน</h4><p class="sub">เปรียบเทียบผลการเรียนทุกชั้น</p>
+ <div id="dashBody"></div>
+ <div style="text-align:right;margin-top:18px"><button class="btn ghost" onclick="closeDash()">ปิด</button></div>
+</div></div>
+
+<div class="modal" id="repModal"><div class="box"><div id="repBody"></div>
+ <div class="no-print" style="display:flex;gap:9px;justify-content:flex-end;margin-top:20px">
+  <button class="btn" onclick="printReport()">🖨️ พิมพ์ใบรายงาน</button>
+  <button class="btn ghost" onclick="closeRep()">ปิด</button></div>
+</div></div>
+
+<script>
+/* ================= ค่าเริ่มต้น ================= */
+const DEF=[{id:"c1",name:"หน่วยที่ 1",max:20},{id:"c2",name:"หน่วยที่ 2",max:20},
+{id:"c3",name:"ชิ้นงาน",max:20},{id:"mid",name:"กลางภาค",max:20},{id:"fin",name:"ปลายภาค",max:20}];
+const SEC0={on:false,hash:"",salt:"",rec:"",recPlain:"",idle:10,ro:false,lockNames:true};
+const SYNC0={mode:"off",url:"",key:"",room:"",device:"",auto:true,rev:0,lastPush:0,lastPull:0};
+let db={cfg:{items:JSON.parse(JSON.stringify(DEF)),attMin:80,school:"",teacher:"",term:""},
+ sec:{...SEC0},sync:{...SYNC0},classes:{},trash:[],log:[],updatedAt:0};
+let lvl=1,room=1,cur="",pending=null,sort={k:"no",d:1},saveT,pushT;
+let locked=false,pinMode="",pinCb=null,tmpPin="",idleT,busy=false;
+const $=id=>document.getElementById(id);
+const K=()=>`ม.${lvl}/${room}`, cls=()=>db.classes[cur]||[];
+const now=()=>new Date().toLocaleString("th-TH",{dateStyle:"short",timeStyle:"short"});
+const fmt=t=>t?new Date(t).toLocaleString("th-TH",{dateStyle:"short",timeStyle:"short"}):"—";
+
+/* ================= เข้ารหัส ================= */
+async function hash(t){
+ try{const h=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));
+  return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+ catch(e){let a=0x811c9dc5,b=0;
+  for(let i=0;i<t.length;i++){a^=t.charCodeAt(i);a=Math.imul(a,0x01000193)>>>0;b=(b*131+t.charCodeAt(i))>>>0}
+  return a.toString(16).padStart(8,"0")+b.toString(16).padStart(8,"0")}}
+const rndHex=n=>[...crypto.getRandomValues(new Uint8Array(n))].map(x=>x.toString(16).padStart(2,"0")).join("");
+function rndCode(len,grp){const c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789",u=crypto.getRandomValues(new Uint8Array(len));
+ return [...u].map((x,i)=>(i&&i%grp===0?"-":"")+c[x%c.length]).join("")}
+
+/* ================= จัดเก็บ ================= */
+function load(){try{const r=JSON.parse(localStorage.getItem("scoreV5"));
+ if(r&&r.cfg){db={...db,...r};db.cfg.items=r.cfg.items?.length?r.cfg.items:DEF;
+  db.sec={...SEC0,...(r.sec||{})};db.sync={...SYNC0,...(r.sync||{})};
+  db.trash=r.trash||[];db.log=r.log||[]}}catch(e){}
+ db.trash=db.trash.filter(t=>t.at>Date.now()-30*864e5);
+ if(!db.sync.device)db.sync.device=navigator.platform||"เครื่องนี้"}
+function save(){clearTimeout(saveT);saveT=setTimeout(()=>{db.updatedAt=Date.now();
+ localStorage.setItem("scoreV5",JSON.stringify(db));autoPush()},250)}
+function saveNow(msg){db.updatedAt=Date.now();localStorage.setItem("scoreV5",JSON.stringify(db));
+ if(msg)toast(msg);autoPush()}
+function addLog(act,detail){db.log.unshift({at:now(),ts:Date.now(),act,detail,dev:db.sync.device});db.log=db.log.slice(0,250)}
+
+/* ================= ซิงก์คลาวด์ ================= */
+function cloudURL(read){
+ const s=db.sync;if(!s.room)return"";
+ if(s.mode==="firebase"){let u=(s.url||"").trim().replace(/\/+$/,"");if(!u)return"";
+  if(!/^https?:/i.test(u))u="https://"+u;
+  return `${u}/scoreapp/${encodeURIComponent(s.room)}.json`+(s.key?`?auth=${encodeURIComponent(s.key)}`:"")}
+ if(s.mode==="jsonbin")return `https://api.jsonbin.io/v3/b/${s.room.trim()}`+(read?"/latest":"");
+ if(s.mode==="custom"){let u=(s.url||"").trim().replace(/\/+$/,"");if(!u)return"";
+  return `${u}/${encodeURIComponent(s.room)}`}
+ return ""}
+function syncHead(){const h={"Content-Type":"application/json"};
+ if(db.sync.mode==="jsonbin"&&db.sync.key)h["X-Master-Key"]=db.sync.key;return h}
+function setBusy(b,txt){busy=b;$("syncBtn").className="icon-btn"+(b?" busy":(db.sync.mode!=="off"?" syncon":""));
+ if(txt)toast(txt)}
+function envelope(){return{rev:(db.sync.rev||0)+1,updatedAt:Date.now(),device:db.sync.device,
+ payload:{cfg:db.cfg,classes:db.classes,trash:db.trash,log:db.log,
+  sec:{on:db.sec.on,hash:db.sec.hash,salt:db.sec.salt,rec:db.sec.rec,idle:db.sec.idle,ro:db.sec.ro,lockNames:db.sec.lockNames}}}}
+
+async function cloudPush(silent){
+ const s=db.sync;if(s.mode==="off")return silent||toast("ยังไม่ได้เปิดการซิงก์ — กด ☁️ เพื่อตั้งค่า");
+ const url=cloudURL();if(!url)return silent||toast("ตั้งค่า URL หรือรหัสห้องข้อมูลยังไม่ครบ");
+ const doc=envelope();setBusy(true);
+ try{const r=await fetch(url,{method:"PUT",headers:syncHead(),body:JSON.stringify(doc)});
+  if(!r.ok)throw new Error("HTTP "+r.status);
+  s.rev=doc.rev;s.lastPush=doc.updatedAt;localStorage.setItem("scoreV5",JSON.stringify(db));
+  setBusy(false);secUI();if(!silent)toast("อัปโหลดขึ้นคลาวด์แล้ว ✔")}
+ catch(e){setBusy(false);if(!silent)toast("อัปโหลดไม่สำเร็จ — "+e.message)}}
+
+function autoPush(){if(!db.sync.auto||db.sync.mode==="off")return;
+ clearTimeout(pushT);pushT=setTimeout(()=>cloudPush(true),6000)}
+
+async function fetchRemote(){
+ const url=cloudURL(true);if(!url)throw new Error("ยังตั้งค่าไม่ครบ");
+ const r=await fetch(url,{headers:syncHead(),cache:"no-store"});
+ if(!r.ok)throw new Error("HTTP "+r.status);
+ let d=await r.json();
+ if(db.sync.mode==="jsonbin"&&d&&d.record)d=d.record;
+ if(!d||!d.payload)throw new Error("ยังไม่มีข้อมูลบนคลาวด์");
+ return d}
+
+async function cloudPull(silent){
+ if(db.sync.mode==="off")return silent||toast("ยังไม่ได้เปิดการซิงก์");
+ setBusy(true);
+ try{const d=await fetchRemote();setBusy(false);
+  const localCount=Object.values(db.classes).reduce((a,v)=>a+v.length,0);
+  const remoteCount=Object.values(d.payload.classes||{}).reduce((a,v)=>a+v.length,0);
+  if(!localCount){applyRemote(d);return toast(`ดึงข้อมูลสำเร็จ — ${remoteCount} คน`)}
+  if(silent&&d.updatedAt<=(db.sync.lastPull||0)&&d.updatedAt<=db.updatedAt)return;
+  askChoice(`<b>พบข้อมูลบนคลาวด์</b><br>
+   <div style="text-align:left;font-size:12.5px;margin-top:10px;line-height:1.9">
+   ☁️ คลาวด์ — ${remoteCount} คน · แก้ล่าสุด ${fmt(d.updatedAt)}<br>
+   💻 เครื่องนี้ — ${localCount} คน · แก้ล่าสุด ${fmt(db.updatedAt)}</div>`,
+   [["ใช้ของคลาวด์","btn cy",()=>{applyRemote(d);toast("ใช้ข้อมูลจากคลาวด์แล้ว")}],
+    ["รวมข้อมูล","btn ok",()=>{mergeRemote(d);toast("รวมข้อมูลเรียบร้อย")}],
+    ["ใช้ของเครื่องนี้","btn ghost",()=>{cloudPush();toast("อัปโหลดทับคลาวด์แล้ว")}]])}
+ catch(e){setBusy(false);if(!silent)toast("ดึงข้อมูลไม่สำเร็จ — "+e.message)}}
+
+function applyRemote(d){
+ const p=d.payload,keepRec=db.sec.recPlain;
+ db.cfg=p.cfg||db.cfg;db.classes=p.classes||{};db.trash=p.trash||[];db.log=p.log||[];
+ if(p.sec&&p.sec.hash)db.sec={...db.sec,...p.sec,recPlain:keepRec};
+ db.sync.rev=d.rev||0;db.sync.lastPull=Date.now();db.updatedAt=d.updatedAt||Date.now();
+ addLog("ดึงข้อมูลจากคลาวด์",`จากเครื่อง ${d.device||"-"}`);
+ locked=!!db.sec.on;localStorage.setItem("scoreV5",JSON.stringify(db));$("term").value=db.cfg.term||"";render()}
+
+function mergeRemote(d){
+ const R=d.payload.classes||{};
+ const idx=s=>((s.sid&&String(s.sid).trim())||("n:"+(s.name||"").trim()));
+ const cnt=s=>Object.values(s.s||{}).filter(v=>v!==""&&v!=null).length;
+ Object.keys(R).forEach(k=>{
+  const L=db.classes[k]=db.classes[k]||[],map=new Map(L.map(s=>[idx(s),s]));
+  R[k].forEach(rs=>{const key=idx(rs),ls=map.get(key);
+   if(!ls){L.push(rs);map.set(key,rs)}
+   else if(cnt(rs)>cnt(ls)){Object.assign(ls,rs)}})});
+ db.trash=[...db.trash,...(d.payload.trash||[])].filter((t,i,a)=>a.findIndex(x=>x.id===t.id)===i);
+ db.log=[...db.log,...(d.payload.log||[])].sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,250);
+ addLog("รวมข้อมูลกับคลาวด์",`จากเครื่อง ${d.device||"-"}`);
+ db.sync.lastPull=Date.now();saveNow();render();cloudPush(true)}
+
+async function testConn(){
+ readSyncForm();if(db.sync.mode==="off")return toast("เลือกบริการก่อน");
+ const url=cloudURL();if(!url)return toast("กรอก URL / รหัสห้องข้อมูลให้ครบ");
+ setBusy(true);
+ try{const r=await fetch(cloudURL(true),{headers:syncHead(),cache:"no-store"});
+  setBusy(false);
+  toast(r.ok?"เชื่อมต่อสำเร็จ ✔ พร้อมใช้งาน":"เชื่อมต่อได้ แต่ตอบกลับ HTTP "+r.status)}
+ catch(e){setBusy(false);toast("เชื่อมต่อไม่สำเร็จ — ตรวจ URL หรือสิทธิ์ฐานข้อมูล")}}
+
+function openSync(){
+ const s=db.sync;
+ $("syMode").value=s.mode;$("syURL").value=s.url;$("syKey").value=s.key;
+ $("syRoom").value=s.room;$("syDev").value=s.device;
+ $("tgAuto").className="tg"+(s.auto?" on":"");syncModeChange();
+ $("syInfo").innerHTML=`สถานะ: <b>${s.mode==="off"?"ปิดอยู่":"เปิดใช้งาน ("+s.mode+")"}</b><br>
+  อัปโหลดล่าสุด: ${fmt(s.lastPush)}<br>ดึงข้อมูลล่าสุด: ${fmt(s.lastPull)}`;
+ $("syncModal").classList.add("show")}
+const closeSync=()=>$("syncModal").classList.remove("show");
+function syncModeChange(){const m=$("syMode").value;
+ $("rowURL").style.display=(m==="firebase"||m==="custom")?"flex":"none";
+ $("rowKey").style.display=(m==="off")?"none":"flex";
+ $("rowKey").querySelector("input").placeholder=m==="jsonbin"?"X-Master-Key ของ JSONBin":"เว้นว่างได้ถ้าเป็น test mode";
+ $("syRoom").placeholder=m==="jsonbin"?"Bin ID":"เช่น TCH-A1B2"}
+function readSyncForm(){const s=db.sync;
+ s.mode=$("syMode").value;s.url=$("syURL").value.trim();s.key=$("syKey").value.trim();
+ s.room=$("syRoom").value.trim();s.device=$("syDev").value.trim()||"เครื่องนี้"}
+function genRoom(){$("syRoom").value="TCH-"+rndCode(8,4)}
+function toggleAuto(){db.sync.auto=!db.sync.auto;$("tgAuto").className="tg"+(db.sync.auto?" on":"")}
+function saveSync(){readSyncForm();
+ if(db.sync.mode!=="off"&&!db.sync.room)return toast("กรุณาใส่รหัสห้องข้อมูล");
+ saveNow("บันทึกการตั้งค่าซิงก์แล้ว");closeSync();secUI()}
+function shareRoom(){const t=`URL: ${$("syURL").value}\nรหัสห้องข้อมูล: ${$("syRoom").value}`;
+ navigator.clipboard?.writeText(t).then(()=>toast("คัดลอกแล้ว นำไปกรอกที่เครื่องอื่นได้เลย"),()=>toast(t))}
+addEventListener("focus",()=>{if(db.sync.auto&&db.sync.mode!=="off")cloudPull(true)});
+
+/* ================= ระบบล็อก ================= */
+function secUI(){
+ const b=$("lockBtn");
+ b.className="icon-btn"+(db.sec.on?(locked?" lockon":" unlocked"):"");
+ b.textContent=db.sec.on?(locked?"🔒":"🔓"):"🔓";
+ $("syncBtn").className="icon-btn"+(busy?" busy":(db.sync.mode!=="off"?" syncon":""));
+ document.body.classList.toggle("ro",db.sec.ro&&locked);
+ $("hintTxt").innerHTML=nameLocked()?"🔒 ชื่อถูกล็อก — คลิกที่ชื่อเพื่อขอปลดล็อก":"💡 Enter / ลูกศร = เลื่อนช่อง";
+ $("secLine").innerHTML=
+  `<span class="chip">${db.sec.on?(locked?"🔒 ล็อกอยู่":"🔓 ปลดล็อกชั่วคราว"):"⚠️ ยังไม่ได้ตั้งรหัส PIN"}</span>`+
+  (nameLocked()?`<span class="chip">🛡️ ชื่อนักเรียนถูกป้องกัน</span>`:"")+
+  (db.sec.ro&&locked?`<span class="chip">👁️ อ่านอย่างเดียว</span>`:"")+
+  `<span class="chip act" onclick="openSync()">${db.sync.mode==="off"?"☁️ ยังไม่ได้เปิดซิงก์ — กดตั้งค่า":"☁️ ซิงก์: "+db.sync.room+" · ล่าสุด "+fmt(db.sync.lastPush)}</span>`+
+  `<span class="chip act" onclick="openTrash()">🗑️ ถังขยะ ${db.trash.length}</span>`+
+  (db.sec.on?"":`<span class="chip act" onclick="setupPin()">👉 ตั้งรหัสตอนนี้</span>`)}
+const nameLocked=()=>db.sec.on&&locked&&db.sec.lockNames;
+
+function lockBtnClick(){
+ if(!db.sec.on)return setupPin();
+ if(locked)openPin("unlock","ปลดล็อกระบบ","ใส่รหัส PIN เพื่อเปิดสิทธิ์แก้ชื่อและลบข้อมูล",()=>{
+  locked=false;resetIdle();render();toast("ปลดล็อกแล้ว")});
+ else{locked=true;render();toast("ล็อกระบบแล้ว")}}
+function guard(actName,fn){
+ if(!db.sec.on||!locked)return fn();
+ openPin("unlock","ยืนยันตัวตน",`ต้องใส่รหัส PIN เพื่อ "${actName}"`,()=>{
+  locked=false;resetIdle();secUI();fn()})}
+function resetIdle(){clearTimeout(idleT);
+ if(db.sec.on&&!locked)idleT=setTimeout(()=>{locked=true;render();toast("ล็อกอัตโนมัติแล้ว")},db.sec.idle*6e4)}
+["click","keydown","mousemove"].forEach(e=>addEventListener(e,()=>{if(db.sec.on&&!locked)resetIdle()},{passive:true}));
+
+function openPin(mode,title,sub,cb){
+ pinMode=mode;pinCb=cb;$("pinTitle").textContent=title;$("pinSub").textContent=sub;
+ $("pinIcon").textContent=mode==="unlock"?"🔐":mode==="recover"?"🔑":"🆕";
+ const p=$("pinIn");p.value="";p.type=mode==="recover"?"text":"password";p.className="pin";
+ p.style.letterSpacing=mode==="recover"?"3px":"16px";p.style.fontSize=mode==="recover"?"20px":"28px";
+ p.maxLength=mode==="recover"?15:6;
+ $("pinMsg").textContent="";$("forgot").style.display=mode==="unlock"?"inline":"none";
+ $("pinModal").classList.add("show");setTimeout(()=>p.focus(),60)}
+const closePin=()=>{$("pinModal").classList.remove("show");pinCb=null;tmpPin=""};
+function pinErr(m){$("pinMsg").textContent=m;$("pinIn").className="pin err";
+ setTimeout(()=>$("pinIn").className="pin",450);$("pinIn").value=""}
+$("pinIn").addEventListener("keydown",e=>{if(e.key==="Enter")pinSubmit()});
+async function pinSubmit(){
+ const v=$("pinIn").value.trim();
+ if(pinMode==="unlock"){
+  if(!/^\d{4,6}$/.test(v))return pinErr("กรุณาใส่ตัวเลข 4–6 หลัก");
+  if(await hash(db.sec.salt+v)!==db.sec.hash)return pinErr("รหัส PIN ไม่ถูกต้อง");
+  const cb=pinCb;closePin();cb&&cb();return}
+ if(pinMode==="new"){
+  if(!/^\d{4,6}$/.test(v))return pinErr("รหัสต้องเป็นตัวเลข 4–6 หลัก");
+  tmpPin=v;pinMode="confirm";$("pinTitle").textContent="ยืนยันรหัส PIN";
+  $("pinSub").textContent="ใส่รหัสเดิมอีกครั้ง";$("pinIn").value="";$("pinMsg").textContent="";return}
+ if(pinMode==="confirm"){
+  if(v!==tmpPin){pinMode="new";$("pinTitle").textContent="ตั้งรหัส PIN";
+   $("pinSub").textContent="ตัวเลข 4–6 หลัก";return pinErr("รหัสไม่ตรงกัน ลองใหม่")}
+  db.sec.salt=rndHex(8);db.sec.hash=await hash(db.sec.salt+v);
+  if(!db.sec.rec){const rc=rndCode(12,4);db.sec.rec=await hash("R"+rc);db.sec.recPlain=rc}
+  db.sec.on=true;locked=false;closePin();addLog("ตั้งรหัส PIN","เปิดระบบป้องกัน");saveNow();
+  render();resetIdle();showRecovery();return}
+ if(pinMode==="recover"){
+  if(await hash("R"+v.toUpperCase())!==db.sec.rec)return pinErr("รหัสกู้คืนไม่ถูกต้อง");
+  closePin();toast("ยืนยันสำเร็จ กรุณาตั้งรหัสใหม่");
+  setTimeout(()=>openPin("new","ตั้งรหัส PIN ใหม่","ตัวเลข 4–6 หลัก"),400)}}
+function setupPin(){openPin("new","ตั้งรหัส PIN","ตัวเลข 4–6 หลัก สำหรับป้องกันชื่อและการลบข้อมูล")}
+function changePin(){if(!db.sec.on)return setupPin();
+ openPin("unlock","ยืนยันรหัสเดิม","ใส่รหัส PIN ปัจจุบัน",()=>
+  setTimeout(()=>openPin("new","ตั้งรหัส PIN ใหม่","ตัวเลข 4–6 หลัก"),300))}
+function forgotPin(){if(!db.sec.rec)return toast("ไม่พบรหัสกู้คืน");
+ openPin("recover","กู้คืนด้วยรหัสสำรอง","ใส่รหัสกู้คืน 12 หลักที่บันทึกไว้")}
+function showRecovery(){
+ if(!db.sec.recPlain)return toast("รหัสกู้คืนถูกซ่อนแล้ว — เปลี่ยน PIN เพื่อสร้างใหม่");
+ $("mIcon").textContent="🔑";$("mTitle").textContent="รหัสกู้คืนของคุณ";
+ $("mText").innerHTML=`<div class="warnbox">⚠️ <b>บันทึกรหัสนี้ไว้ในที่ปลอดภัย</b><br>
+  ใช้กู้คืนกรณีลืม PIN โดยข้อมูลนักเรียนไม่หาย</div><div class="code">${db.sec.recPlain}</div>`;
+ $("mType").classList.add("hide");$("mYes").textContent="บันทึกแล้ว";$("mYes").className="btn";
+ pending=()=>{};$("modal").classList.add("show")}
+
+/* ================= ธีม / toast / confirm ================= */
+function toggleTheme(){const d=document.documentElement.getAttribute("data-theme")==="dark";
+ document.documentElement.setAttribute("data-theme",d?"light":"dark");
+ $("themeBtn").textContent=d?"🌙":"☀️";localStorage.setItem("theme",d?"light":"dark")}
+if(localStorage.getItem("theme")==="dark"){document.documentElement.setAttribute("data-theme","dark");
+ addEventListener("DOMContentLoaded",()=>$("themeBtn").textContent="☀️")}
+let tt;
+function toast(m,undo){const t=$("toast");t.innerHTML="✅ <span>"+m+"</span>"+
+ (undo?' <button class="btn ghost sm" onclick="openTrash()">🗑️ ถังขยะ</button>':"");
+ t.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("show"),undo?4500:2000)}
+function ask(txt,fn,typeWord){
+ $("mIcon").textContent="⚠️";$("mTitle").textContent="ยืนยันการทำรายการ";
+ $("mText").innerHTML=txt;pending=fn;
+ $("mBtns").innerHTML=`<button class="btn bad" id="mYes" onclick="confirmYes()">ยืนยัน</button>
+  <button class="btn ghost" onclick="closeModal()">ยกเลิก</button>`;
+ const ti=$("mType");
+ if(typeWord){ti.classList.remove("hide");ti.value="";ti.placeholder=`พิมพ์ "${typeWord}" เพื่อยืนยัน`;
+  ti.dataset.w=typeWord;setTimeout(()=>ti.focus(),80)}else ti.classList.add("hide");
+ $("modal").classList.add("show")}
+function askChoice(txt,opts){
+ $("mIcon").textContent="⚖️";$("mTitle").textContent="พบข้อมูลไม่ตรงกัน";
+ $("mText").innerHTML=txt;$("mType").classList.add("hide");
+ $("mBtns").innerHTML=opts.map((o,i)=>`<button class="${o[1]}" onclick="choicePick(${i})">${o[0]}</button>`).join("")+
+  `<button class="btn ghost" onclick="closeModal()">ยกเลิก</button>`;
+ window.__choices=opts;$("modal").classList.add("show")}
+function choicePick(i){const f=window.__choices[i][2];closeModal();f&&f()}
+function closeModal(){$("modal").classList.remove("show");pending=null}
+function confirmYes(){const ti=$("mType");
+ if(!ti.classList.contains("hide")&&ti.value.trim()!==ti.dataset.w)return toast("ข้อความยืนยันไม่ถูกต้อง");
+ if(pending)pending();closeModal()}
+
+/* ================= คำนวณ ================= */
+const gradeOf=p=>p>=80?4:p>=75?3.5:p>=70?3:p>=65?2.5:p>=60?2:p>=55?1.5:p>=50?1:0;
+const pcls=g=>g>=3.5?"p4":g>=2.5?"p3":g>=1.5?"p2":g>=1?"p1":"p0";
+const maxTotal=()=>db.cfg.items.reduce((a,i)=>a+(+i.max||0),0)||100;
+function calc(st){
+ const mx=maxTotal(),raw=db.cfg.items.reduce((a,i)=>a+(+(st.s?.[i.id])||0),0),pct=raw/mx*100;
+ let g=gradeOf(pct),txt=g.toFixed(1),sp=false;
+ const att=st.att===""||st.att==null?null:+st.att;
+ if(st.flag){txt=st.flag;g=0;sp=true}
+ else if(att!==null&&att<db.cfg.attMin){txt="มส";g=0;sp=true}
+ return{raw,mx,pct,g,txt,sp}}
+const filled=st=>db.cfg.items.filter(i=>st.s?.[i.id]!==""&&st.s?.[i.id]!=null).length;
+
+/* ================= sidebar ================= */
+function buildSide(){
+ $("lvList").innerHTML=[1,2,3,4,5,6].map(i=>{
+  const n=Object.keys(db.classes).filter(k=>k.startsWith(`ม.${i}/`)).reduce((a,k)=>a+db.classes[k].length,0);
+  return `<div class="lv ${i===lvl?'on':''}" onclick="setLv(${i})"><span>🎓 ม.${i}</span><span class="cnt">${n}</span></div>`}).join("");
+ $("rmList").innerHTML=Array.from({length:2},(_,i)=>i+1).map(r=>{
+  const has=(db.classes[`ม.${lvl}/${r}`]||[]).length;
+  return `<button class="rm ${r===room?'on':''}" onclick="setRm(${r})" title="${has} คน">${r}</button>`}).join("")}
+const setLv=i=>{lvl=i;render()}, setRm=r=>{room=(r===2?2:1);render()};
+
+/* ================= ตาราง ================= */
+function sortBy(k){sort.d=sort.k===k?-sort.d:1;sort.k=k;render()}
+function render(){
+ cur=K();if(!db.classes[cur])db.classes[cur]=[];
+ buildSide();secUI();
+ const NL=nameLocked(),ar=k=>sort.k===k?(sort.d>0?" ▲":" ▼"):"";
+ $("thead").innerHTML=`<th class="no sortable" onclick="sortBy('no')">#${ar('no')}</th>
+ <th style="min-width:92px">${NL?"🔒 ":""}รหัส</th>
+ <th class="sortable" style="min-width:175px;text-align:left;padding-left:14px" onclick="sortBy('name')">${NL?"🔒 ":""}ชื่อ – สกุล${ar('name')}</th>
+ ${db.cfg.items.map(i=>`<th style="min-width:74px">${i.name}<small>${i.max}</small></th>`).join("")}
+ <th style="min-width:70px">เวลาเรียน<small>%</small></th>
+ <th class="sortable" onclick="sortBy('sum')">รวม<small>${maxTotal()}</small>${ar('sum')}</th>
+ <th class="sortable" onclick="sortBy('grade')">เกรด${ar('grade')}</th>
+ <th class="sortable" onclick="sortBy('rank')">อันดับ${ar('rank')}</th>
+ <th style="min-width:70px">สถานะ</th><th class="no-print">จัดการ</th>`;
+
+ const list=cls(),q=$("search").value.trim().toLowerCase();
+ const pcts=list.map(s=>calc(s).pct);
+ let view=list.map((s,i)=>({s,i,c:calc(s)}))
+  .filter(o=>!q||(o.s.name||"").toLowerCase().includes(q)||String(o.i+1).includes(q));
+ view.forEach(o=>o.rank=1+pcts.filter(p=>p>o.c.pct).length);
+ const S={no:(a,b)=>a.i-b.i,name:(a,b)=>(a.s.name||"").localeCompare(b.s.name||"","th"),
+  sum:(a,b)=>b.c.raw-a.c.raw,grade:(a,b)=>b.c.g-a.c.g,rank:(a,b)=>a.rank-b.rank};
+ view.sort((a,b)=>S[sort.k](a,b)*sort.d);
+
+ $("title").textContent=`ชั้น ${cur} — ${list.length} คน`;
+ const tb=$("tbody");tb.innerHTML="";let ri=0;const RO=NL?"readonly":"";
+ view.forEach(o=>{const{s,i,c,rank}=o;let ci=0;
+  const cell=(v,f,mx)=>`<td><input value="${v??""}" inputmode="decimal" data-r="${ri}" data-c="${ci++}" data-i="${i}" data-f="${f}" data-max="${mx}"></td>`;
+  tb.insertAdjacentHTML("beforeend",`<tr data-i="${i}">
+   <td class="no"><i>${i+1}</i></td>
+   <td><input class="txt" ${RO} title="${NL?'ถูกล็อก — คลิกเพื่อขอปลดล็อก':''}" value="${s.sid||""}" data-r="${ri}" data-c="${ci++}" data-i="${i}" data-f="sid"></td>
+   <td><input class="txt" ${RO} title="${NL?'ถูกล็อก — คลิกเพื่อขอปลดล็อก':''}" value="${s.name||""}" placeholder="ชื่อ–สกุล" data-r="${ri}" data-c="${ci++}" data-i="${i}" data-f="name"></td>
+   ${db.cfg.items.map(t2=>cell(s.s?.[t2.id],"s:"+t2.id,t2.max)).join("")}
+   ${cell(s.att,"att",100)}
+   <td class="sum" style="color:${c.pct>=50?'var(--ok)':'var(--bad)'}">${c.raw.toFixed(1)}</td>
+   <td><span class="pill ${c.sp?'px':pcls(c.g)}">${c.txt}</span></td>
+   <td class="rk ${rank===1?'top':''}">${rank===1?'🥇 1':rank}</td>
+   <td><select data-i="${i}" data-f="flag"><option value="">ปกติ</option>
+    ${["ร","มส","มผ"].map(f=>`<option ${s.flag===f?"selected":""}>${f}</option>`).join("")}</select></td>
+   <td class="no-print"><div class="act">
+    <button class="mini" onclick="openRep(${i})" title="ใบรายงานผล">🧾</button>
+    <button class="mini d" onclick="askDel(${i})" title="ลบ">${db.sec.on&&locked?"🔒":"✕"}</button>
+   </div></td></tr>`);ri++});
+ if(!view.length)tb.innerHTML=`<tr><td colspan="${db.cfg.items.length+9}"><div class="empty"><div>${q?'🔍':'📝'}</div>${q?'ไม่พบรายชื่อที่ค้นหา':'ยังไม่มีรายชื่อ — กด “เพิ่มนักเรียน” เพื่อเริ่มต้น'}</div></td></tr>`;
+ stats(list)}
+
+/* ---- ป้องกันการแก้ชื่อ ---- */
+function reqNameEdit(i,f){
+ guard("แก้ไขชื่อ / รหัสนักเรียน",()=>{render();
+  setTimeout(()=>{const t=$("tbody").querySelector(`[data-i="${i}"][data-f="${f}"]`);
+   if(t){t.focus();t.select()}},60)})}
+$("tbody").addEventListener("mousedown",e=>{
+ const el=e.target;if(el.tagName!=="INPUT"||!el.readOnly)return;
+ e.preventDefault();reqNameEdit(el.dataset.i,el.dataset.f)});
+$("tbody").addEventListener("focusin",e=>{const el=e.target;
+ if(el.tagName==="INPUT")el.dataset.old=el.value});
+
+$("tbody").addEventListener("input",e=>{
+ const el=e.target;if(!el.dataset.f||el.tagName==="SELECT"||el.readOnly)return;
+ if(db.sec.ro&&locked)return;
+ const s=cls()[+el.dataset.i],f=el.dataset.f;
+ if(f==="sid"||f==="name")s[f]=el.value;
+ else{let n=parseFloat(el.value);const mx=+el.dataset.max;
+  if(el.value===""){n=""}else if(isNaN(n)){return}
+  else{n=Math.min(Math.max(n,0),mx);if(n!=el.value&&el.value.slice(-1)!==".")el.value=n}
+  if(f==="att")s.att=n;else{s.s=s.s||{};s.s[f.split(":")[1]]=n}}
+ save();refreshCalc()});
+
+$("tbody").addEventListener("change",e=>{
+ const el=e.target;
+ if(el.tagName==="SELECT"){cls()[+el.dataset.i].flag=el.value;saveNow();render();return}
+ const f=el.dataset.f;
+ if((f==="name"||f==="sid")&&el.dataset.old!==undefined&&el.dataset.old!==el.value){
+  addLog(f==="name"?"แก้ไขชื่อนักเรียน":"แก้ไขรหัสนักเรียน",
+   `${cur} เลขที่ ${+el.dataset.i+1}: "${el.dataset.old||"(ว่าง)"}" → "${el.value||"(ว่าง)"}"`);
+  el.dataset.old=el.value;saveNow()}});
+
+$("tbody").addEventListener("keydown",e=>{
+ const el=e.target;if(el.dataset.r===undefined)return;
+ if(el.readOnly&&e.key.length===1){e.preventDefault();return reqNameEdit(el.dataset.i,el.dataset.f)}
+ const r=+el.dataset.r,c=+el.dataset.c;let nr=r,nc=c;
+ if(e.key==="Enter"||e.key==="ArrowDown")nr=r+1;
+ else if(e.key==="ArrowUp")nr=r-1;
+ else if(e.key==="ArrowRight"&&el.selectionStart===el.value.length)nc=c+1;
+ else if(e.key==="ArrowLeft"&&el.selectionStart===0)nc=c-1;else return;
+ const t=$("tbody").querySelector(`[data-r="${nr}"][data-c="${nc}"]`)||$("tbody").querySelector(`[data-r="${nr}"]`);
+ if(t){e.preventDefault();t.focus();t.select()}});
+
+function refreshCalc(){
+ const list=cls(),pcts=list.map(s=>calc(s).pct);
+ $("tbody").querySelectorAll("tr[data-i]").forEach(tr=>{
+  const s=list[+tr.dataset.i],c=calc(s),rank=1+pcts.filter(p=>p>c.pct).length;
+  const sum=tr.querySelector(".sum"),pl=tr.querySelector(".pill"),rk=tr.querySelector(".rk");
+  sum.textContent=c.raw.toFixed(1);sum.style.color=c.pct>=50?"var(--ok)":"var(--bad)";
+  pl.className="pill "+(c.sp?"px":pcls(c.g));pl.textContent=c.txt;
+  rk.className="rk"+(rank===1?" top":"");rk.textContent=rank===1?"🥇 1":rank});
+ stats(list)}
+
+const addRow=()=>{db.classes[K()]=db.classes[K()]||[];
+ db.classes[K()].push({sid:"",name:"",s:{},att:"",flag:""});saveNow();render()};
+function askDel(i){const nm=cls()[i].name||"นักเรียนคนนี้";
+ guard("ลบรายชื่อนักเรียน",()=>ask(
+  `ต้องการลบ <b>“${nm}”</b> ใช่หรือไม่?<br><span style="font-size:12px">ข้อมูลจะถูกย้ายไปถังขยะ 30 วัน</span>`,
+  ()=>{const rm=cls().splice(i,1)[0];
+   db.trash.unshift({id:Date.now()+Math.random(),k:cur,i,at:Date.now(),data:rm});
+   addLog("ลบนักเรียน",`${nm} (${cur})`);saveNow();render();toast("ย้ายไปถังขยะแล้ว",true)}))}
+function askClear(){
+ if(!cls().length)return toast("ห้องนี้ยังไม่มีข้อมูล");
+ guard("ล้างข้อมูลทั้งห้อง",()=>ask(
+  `<b style="color:var(--bad)">คำเตือน!</b> กำลังจะลบนักเรียน <b>${cls().length} คน</b> ของ ${cur}<br>
+   <span style="font-size:12px">ทั้งหมดจะย้ายไปถังขยะ</span>`,
+  ()=>{const n=cls().length;
+   cls().forEach((s,i)=>db.trash.unshift({id:Date.now()+Math.random()+i,k:cur,i,at:Date.now(),data:s}));
+   addLog("ล้างทั้งห้อง",`${cur} จำนวน ${n} คน`);db.classes[K()]=[];saveNow();render();
+   toast("ล้างข้อมูลแล้ว (กู้คืนได้)",true)},cur))}
+
+/* ================= ถังขยะ / ประวัติ ================= */
+function openTrash(){
+ $("trashBody").innerHTML=db.trash.length?db.trash.map(t=>{
+  const d=Math.ceil((t.at+30*864e5-Date.now())/864e5);
+  return `<div class="li"><div style="font-size:20px">🧑‍🎓</div>
+   <div class="g"><b>${t.data.name||"(ไม่มีชื่อ)"}</b>
+   <span>${t.k} · ลบเมื่อ ${fmt(t.at)} · เหลือ ${d} วัน</span></div>
+   <button class="btn ok sm" onclick="restore(${t.id})">↩ กู้คืน</button></div>`}).join("")
+  :`<div class="empty"><div>✨</div>ถังขยะว่าง</div>`;
+ $("trashModal").classList.add("show")}
+const closeTrash=()=>$("trashModal").classList.remove("show");
+function restore(id){const k=db.trash.findIndex(t=>t.id===id);if(k<0)return;
+ const t=db.trash[k];db.classes[t.k]=db.classes[t.k]||[];
+ db.classes[t.k].splice(Math.min(t.i,db.classes[t.k].length),0,t.data);
+ db.trash.splice(k,1);addLog("กู้คืนนักเรียน",`${t.data.name||"-"} (${t.k})`);
+ saveNow();render();openTrash();toast("กู้คืนเรียบร้อย")}
+function emptyTrash(){if(!db.trash.length)return toast("ถังขยะว่างอยู่แล้ว");
+ guard("ล้างถังขยะถาวร",()=>ask(`ลบถาวร <b>${db.trash.length} รายการ</b> — <span style="color:var(--bad)">กู้คืนไม่ได้อีก</span>`,
+  ()=>{addLog("ล้างถังขยะถาวร",`${db.trash.length} รายการ`);db.trash=[];saveNow();openTrash();render();toast("ล้างถังขยะแล้ว")},"ลบถาวร"))}
+function openLog(){
+ $("logBody").innerHTML=db.log.length?db.log.map(l=>`<div class="li">
+  <div style="font-size:17px">${/ลบ|ล้าง/.test(l.act)?"🗑️":/กู้/.test(l.act)?"↩️":/ชื่อ|รหัส/.test(l.act)?"✏️":/คลาวด์/.test(l.act)?"☁️":"⚙️"}</div>
+  <div class="g"><b>${l.act}</b><span>${l.detail}${l.dev?" · "+l.dev:""}</span></div>
+  <span style="font-size:11.5px;color:var(--muted);white-space:nowrap">${l.at}</span></div>`).join("")
+  :`<div class="empty"><div>📭</div>ยังไม่มีประวัติ</div>`;
+ $("logModal").classList.add("show")}
+const closeLog=()=>$("logModal").classList.remove("show");
+
+/* ================= ตั้งค่า ================= */
+function openSettings(){
+ $("sSchool").value=db.cfg.school||"";$("sTeacher").value=db.cfg.teacher||"";
+ $("sAtt").value=db.cfg.attMin;$("sIdle").value=db.sec.idle;
+ $("tgSec").className="tg"+(db.sec.on?" on":"");
+ $("tgRO").className="tg"+(db.sec.ro?" on":"");
+ $("tgName").className="tg"+(db.sec.lockNames?" on":"");
+ drawItems();$("setModal").classList.add("show")}
+const closeSettings=()=>$("setModal").classList.remove("show");
+function toggleSec(){if(!db.sec.on){closeSettings();return setupPin()}
+ guard("ปิดระบบล็อก",()=>{db.sec.on=false;locked=false;addLog("ปิดระบบล็อก","");saveNow();
+  $("tgSec").className="tg";render();toast("ปิดระบบล็อกแล้ว")})}
+function toggleNameLock(){
+ const turnOff=db.sec.lockNames;
+ const apply=()=>{db.sec.lockNames=!turnOff;$("tgName").className="tg"+(db.sec.lockNames?" on":"");
+  addLog(turnOff?"ปิดล็อกชื่อ":"เปิดล็อกชื่อ","");saveNow();render()};
+ turnOff?guard("ปิดการล็อกชื่อนักเรียน",apply):apply()}
+function toggleRO(){db.sec.ro=!db.sec.ro;$("tgRO").className="tg"+(db.sec.ro?" on":"");saveNow();render()}
+function drawItems(){
+ $("itemList").innerHTML=db.cfg.items.map((it,k)=>`<div class="frow">
+  <input value="${it.name}" oninput="db.cfg.items[${k}].name=this.value">
+  <input class="w80" type="number" min="1" value="${it.max}" oninput="db.cfg.items[${k}].max=+this.value||0;$('sTotal').textContent=maxTotal()">
+  <button class="mini d" onclick="delItem(${k})">✕</button></div>`).join("");
+ $("sTotal").textContent=maxTotal()}
+function addItem(){db.cfg.items.push({id:"k"+Date.now(),name:"รายการใหม่",max:10});drawItems()}
+function delItem(k){if(db.cfg.items.length<=1)return toast("ต้องมีอย่างน้อย 1 รายการ");
+ guard("ลบรายการคะแนน",()=>{addLog("ลบรายการคะแนน",db.cfg.items[k].name);db.cfg.items.splice(k,1);drawItems()})}
+function saveSettings(){
+ db.cfg.school=$("sSchool").value;db.cfg.teacher=$("sTeacher").value;
+ db.cfg.attMin=+$("sAtt").value||0;db.sec.idle=Math.max(1,+$("sIdle").value||10);
+ closeSettings();saveNow("บันทึกการตั้งค่าแล้ว");resetIdle();render()}
+
+/* ================= แดชบอร์ด / สถิติ ================= */
+function openDash(){
+ const keys=Object.keys(db.classes).filter(k=>db.classes[k].length).sort((a,b)=>a.localeCompare(b,"th",{numeric:true}));
+ const rows=keys.map(k=>{const C=db.classes[k].map(calc),n=C.length;
+  return{k,n,avg:C.reduce((a,c)=>a+c.raw,0)/n,gpa:C.reduce((a,c)=>a+c.g,0)/n,
+   pass:C.filter(c=>c.g>=1).length,rate:C.filter(c=>c.g>=1).length/n*100}});
+ $("dashBody").innerHTML=rows.length?`<div class="tbl-wrap" style="max-height:55vh"><table>
+  <thead><tr><th style="text-align:left;padding-left:14px">ห้องเรียน</th><th>จำนวน</th><th>คะแนนเฉลี่ย</th>
+  <th>เกรดเฉลี่ย</th><th>ผ่าน</th><th style="min-width:150px">อัตราผ่าน</th></tr></thead>
+  <tbody>${rows.map(r=>`<tr><td style="text-align:left;padding-left:14px;font-weight:600">${r.k}</td>
+   <td>${r.n}</td><td>${r.avg.toFixed(1)}</td><td><span class="pill ${pcls(r.gpa)}">${r.gpa.toFixed(2)}</span></td>
+   <td>${r.pass}</td><td><div style="display:flex;align-items:center;gap:8px">
+   <div style="flex:1;height:8px;background:var(--soft);border-radius:20px;overflow:hidden;border:1px solid var(--line)">
+   <div style="height:100%;width:${r.rate}%;background:${r.rate>=80?'#10b981':r.rate>=60?'#f59e0b':'#ef4444'}"></div></div>
+   <span style="font-size:11.5px;font-weight:600;width:38px">${r.rate.toFixed(0)}%</span></div></td></tr>`).join("")}</tbody></table></div>
+  <div class="stats" style="margin-top:16px">
+   <div class="st"><div class="ic" style="background:rgba(79,70,229,.13);color:#4f46e5">🏫</div>
+   <div><b style="color:#4f46e5">${rows.length}</b><span>ห้องที่มีข้อมูล</span></div></div>
+   <div class="st"><div class="ic" style="background:rgba(6,182,212,.13);color:#06b6d4">👥</div>
+   <div><b style="color:#06b6d4">${rows.reduce((a,r)=>a+r.n,0)}</b><span>นักเรียนทั้งหมด</span></div></div>
+   <div class="st"><div class="ic" style="background:rgba(16,185,129,.13);color:#10b981">🎯</div>
+   <div><b style="color:#10b981">${(rows.reduce((a,r)=>a+r.gpa*r.n,0)/rows.reduce((a,r)=>a+r.n,0)).toFixed(2)}</b><span>เกรดเฉลี่ยรวม</span></div></div></div>`
+  :`<div class="empty"><div>📭</div>ยังไม่มีข้อมูลนักเรียนในระบบ</div>`;
+ $("dashModal").classList.add("show")}
+const closeDash=()=>$("dashModal").classList.remove("show");
+function stats(list){
+ const C=list.map(calc),n=C.length,mx=maxTotal();
+ const avg=n?C.reduce((a,c)=>a+c.raw,0)/n:0,gpa=n?C.reduce((a,c)=>a+c.g,0)/n:0;
+ const pass=C.filter(c=>c.g>=1).length,cells=db.cfg.items.length*n;
+ const done=list.reduce((a,s)=>a+filled(s),0),p=cells?done/cells*100:0;
+ $("progBar").style.width=p+"%";
+ $("progTxt").textContent=`กรอกคะแนนแล้ว ${done}/${cells} ช่อง (${p.toFixed(0)}%)${p===100&&cells?" 🎉 ครบทุกช่องแล้ว":""}`;
+ const S=(ic,bg,col,v,lb)=>`<div class="st"><div class="ic" style="background:${bg};color:${col}">${ic}</div>
+  <div><b style="color:${col}">${v}</b><span>${lb}</span></div></div>`;
+ $("stats").innerHTML=
+  S("👥","rgba(79,70,229,.13)","#4f46e5",n,"นักเรียนทั้งหมด")+
+  S("📊","rgba(6,182,212,.13)","#06b6d4",avg.toFixed(2),`คะแนนเฉลี่ย (เต็ม ${mx})`)+
+  S("🎯","rgba(124,58,237,.13)","#7c3aed",gpa.toFixed(2),"เกรดเฉลี่ยห้อง")+
+  S("🏆","rgba(245,158,11,.13)","#f59e0b",n?Math.max(...C.map(c=>c.raw)).toFixed(1):"0","คะแนนสูงสุด")+
+  S("✅","rgba(16,185,129,.13)","#10b981",pass,"ผ่านเกณฑ์")+
+  S("⚠️","rgba(239,68,68,.13)","#ef4444",n-pass,"ไม่ผ่าน / ติด มส");
+ const col={4:"#059669",3.5:"#10b981",3:"#2563eb",2.5:"#3b82f6",2:"#d97706",1.5:"#f59e0b",1:"#ea580c",0:"#dc2626"};
+ $("dist").innerHTML=[4,3.5,3,2.5,2,1.5,1,0].map(g=>{
+  const c=C.filter(x=>!x.sp&&x.g===g).length,pc=n?c/n*100:0;
+  return `<div class="dr"><span class="lb">เกรด ${g.toFixed(1)}</span>
+   <div class="track"><div class="fill" style="width:${pc}%;background:${col[g]}"></div></div>
+   <span class="vl" style="color:${col[g]}">${c}</span></div>`}).join("")+
+  (C.some(c=>c.sp)?`<div class="dr"><span class="lb">ร/มส/มผ</span>
+   <div class="track"><div class="fill" style="width:${C.filter(c=>c.sp).length/n*100}%;background:#64748b"></div></div>
+   <span class="vl" style="color:#64748b">${C.filter(c=>c.sp).length}</span></div>`:"")}
+
+/* ================= ใบรายงาน ================= */
+function openRep(i){
+ const s=cls()[i],c=calc(s),list=cls(),pcts=list.map(x=>calc(x).pct);
+ const rank=1+pcts.filter(p=>p>c.pct).length;
+ const avg=list.reduce((a,x)=>a+calc(x).raw,0)/list.length;
+ $("repBody").innerHTML=`
+ <div class="rep-head"><h2>${db.cfg.school||"ใบรายงานผลการเรียน"}</h2>
+  <p>รายวิชาคอมพิวเตอร์ · ภาคเรียนที่ ${db.cfg.term||"-"} · ชั้น ${cur}</p></div>
+ <table class="rep-tbl">
+  <tr><td>ชื่อ – สกุล</td><td>${s.name||"-"}</td></tr>
+  <tr><td>เลขที่ / รหัสนักเรียน</td><td>${i+1} / ${s.sid||"-"}</td></tr>
+  <tr><td>เวลาเรียน</td><td>${s.att===""||s.att==null?"-":s.att+"%"} (เกณฑ์ ${db.cfg.attMin}%)</td></tr></table>
+ <table class="rep-tbl"><tr style="color:var(--muted);font-size:12px"><td>รายการประเมิน</td><td>คะแนน</td></tr>
+  ${db.cfg.items.map(it=>{const v=+(s.s?.[it.id])||0,p=it.max?v/it.max*100:0;
+  return `<tr><td>${it.name}<div style="height:6px;background:var(--line);border-radius:20px;margin-top:5px;overflow:hidden">
+   <div style="height:100%;width:${p}%;background:${p>=50?'var(--brand)':'var(--bad)'}"></div></div></td>
+   <td>${v} / ${it.max}</td></tr>`}).join("")}
+  <tr style="font-size:15px"><td><b>รวมทั้งหมด</b></td><td><b>${c.raw.toFixed(1)} / ${c.mx}</b></td></tr></table>
+ <div class="rep-grid">
+  <div><b style="color:${c.pct>=50?'var(--ok)':'var(--bad)'}">${c.pct.toFixed(1)}%</b><span>คิดเป็นร้อยละ</span></div>
+  <div><b style="color:var(--brand)">${c.txt}</b><span>ผลการเรียน</span></div>
+  <div><b style="color:var(--warn)">${rank}</b><span>อันดับจาก ${list.length} คน</span></div></div>
+ <p style="font-size:12.5px;color:var(--muted);text-align:center">ค่าเฉลี่ยของห้อง ${avg.toFixed(1)} คะแนน —
+  นักเรียนได้ ${c.raw>=avg?"สูงกว่า":"ต่ำกว่า"}ค่าเฉลี่ย ${Math.abs(c.raw-avg).toFixed(1)} คะแนน</p>
+ <div class="sign">ลงชื่อ ..............................................<br>( ${db.cfg.teacher||"....................................."} )<br>ครูผู้สอน</div>`;
+ $("repModal").classList.add("show")}
+const closeRep=()=>$("repModal").classList.remove("show");
+function printReport(){document.body.classList.add("rep");window.print();
+ setTimeout(()=>document.body.classList.remove("rep"),600)}
+
+/* ================= นำเข้า / ส่งออก ================= */
+const togglePaste=()=>$("pasteBox").classList.toggle("hide");
+function importNames(){
+ const L=$("pasteArea").value.split("\n").map(x=>x.trim()).filter(Boolean);if(!L.length)return;
+ db.classes[K()]=db.classes[K()]||[];
+ L.forEach(line=>{const p=line.split("\t");let sid="",name=line;
+  if(p.length>1){sid=p[0];name=p.slice(1).join(" ")}
+  else{const m=line.match(/^(\d{3,})\s+(.+)$/);if(m){sid=m[1];name=m[2]}else name=line.replace(/^\d+[.)]\s*/,"")}
+  db.classes[K()].push({sid,name:name.trim(),s:{},att:"",flag:""})});
+ $("pasteArea").value="";togglePaste();addLog("เพิ่มรายชื่อ",`${L.length} คน (${K()})`);
+ saveNow();render();toast(`เพิ่ม ${L.length} รายชื่อแล้ว`)}
+function exportCSV(){
+ const h=["เลขที่","รหัส","ชื่อ-สกุล",...db.cfg.items.map(i=>i.name),"เวลาเรียน%","รวม","ร้อยละ","เกรด","สถานะ"];
+ const rows=cls().map((s,i)=>{const c=calc(s);
+  return[i+1,s.sid||"",s.name||"",...db.cfg.items.map(it=>s.s?.[it.id]??""),s.att??"",c.raw.toFixed(1),c.pct.toFixed(1),c.txt,s.flag||""]});
+ const csv="\uFEFF"+[h,...rows].map(r=>r.map(c=>`"${c}"`).join(",")).join("\n");
+ dl(new Blob([csv],{type:"text/csv"}),`คะแนนคอม_${cur.replace("/","-")}.csv`);toast("ส่งออก CSV แล้ว")}
+function dl(b,n){const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=n;a.click()}
+function parseCSV(t){return t.replace(/^\uFEFF/,"").split(/\r?\n/).filter(l=>l.trim()).map(l=>{
+ const o=[];let c="",q=false;
+ for(let i=0;i<l.length;i++){const ch=l[i];
+  if(ch==='"'){if(q&&l[i+1]==='"'){c+='"';i++}else q=!q}
+  else if(ch===","&&!q){o.push(c);c=""}else c+=ch}
+ o.push(c);return o.map(x=>x.trim())})}
+$("fileCSV").addEventListener("change",e=>{
+ const f=e.target.files[0];if(!f)return;const rd=new FileReader();
+ rd.onload=()=>{const rows=parseCSV(rd.result);if(!rows.length)return toast("ไฟล์ว่าง");
+  const head=rows[0].some(c=>/ชื่อ|name/i.test(c)),body=head?rows.slice(1):rows;
+  db.classes[K()]=db.classes[K()]||[];let n=0;
+  body.forEach(r=>{if(!r[2]&&!r[1])return;
+   const s={sid:r[1]||"",name:r[2]||r[1]||"",s:{},att:"",flag:""};
+   db.cfg.items.forEach((it,k)=>{const v=parseFloat(r[3+k]);if(!isNaN(v))s.s[it.id]=Math.min(v,it.max)});
+   const a=parseFloat(r[3+db.cfg.items.length]);if(!isNaN(a))s.att=a;
+   db.classes[K()].push(s);n++});
+  addLog("นำเข้า CSV",`${n} รายการ (${K()})`);saveNow();render();toast(`นำเข้า ${n} รายการแล้ว`)};
+ rd.readAsText(f,"utf-8");e.target.value=""});
+function backup(){dl(new Blob([JSON.stringify(db,null,1)],{type:"application/json"}),
+ `สำรองคะแนน_${new Date().toISOString().slice(0,10)}.json`);toast("สำรองข้อมูลแล้ว")}
+$("fileJSON").addEventListener("change",e=>{
+ const f=e.target.files[0];if(!f)return;const rd=new FileReader();
+ rd.onload=()=>{try{const o=JSON.parse(rd.result);if(!o.classes)throw 0;
+  ask(`<b style="color:var(--bad)">คำเตือน!</b> การกู้คืนจะแทนที่ข้อมูลปัจจุบันทั้งหมด`,
+   ()=>{const ks=db.sec,sy=db.sync;db={...db,...o};db.sec=o.sec&&o.sec.hash?{...ks,...o.sec}:ks;db.sync={...sy};
+    addLog("กู้คืนจากไฟล์",f.name);locked=!!db.sec.on;saveNow();$("term").value=db.cfg.term||"";render();
+    toast("กู้คืนข้อมูลสำเร็จ")},"กู้คืน")}
+  catch(x){toast("ไฟล์ไม่ถูกต้อง")}};
+ rd.readAsText(f,"utf-8");e.target.value=""});
+
+/* ================= init ================= */
+$("search").addEventListener("input",render);
+$("term").addEventListener("input",e=>{db.cfg.term=e.target.value;save()});
+[["modal",closeModal],["setModal",closeSettings],["dashModal",closeDash],["repModal",closeRep],
+ ["trashModal",closeTrash],["logModal",closeLog],["syncModal",closeSync]]
+ .forEach(([id,fn])=>$(id).addEventListener("click",e=>{if(e.target.id===id)fn()}));
+addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();closeSettings();closeDash();closeRep();
+ closeTrash();closeLog();closeSync();closePin()}});
+addEventListener("beforeunload",()=>{if(db.sync.auto&&db.sync.mode!=="off")
+ try{navigator.sendBeacon&&0}catch(e){}});
+load();locked=!!db.sec.on;$("term").value=db.cfg.term||"";render();
+if(db.sync.auto&&db.sync.mode!=="off")setTimeout(()=>cloudPull(true),800);
+</script>
+</body>
+</html>
