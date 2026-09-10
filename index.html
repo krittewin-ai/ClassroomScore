@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="th" data-theme="light">
 <head>
@@ -721,12 +722,13 @@ td input:focus, td select:focus { box-shadow: 0 0 0 4px rgba(105,86,232,.14); }
 /* ================= ค่าเริ่มต้น ================= */
 const DEF=[{id:"c1",name:"หน่วยที่ 1",max:20},{id:"c2",name:"หน่วยที่ 2",max:20},
 {id:"c3",name:"ชิ้นงาน",max:20},{id:"mid",name:"กลางภาค",max:20},{id:"fin",name:"ปลายภาค",max:20}];
-const SEC0={on:false,hash:"",salt:"",rec:"",recPlain:"",idle:10,ro:false,lockNames:true};
+const EDIT_PIN="456123";
+const SEC0={on:true,hash:"",salt:"",rec:"",recPlain:"",idle:10,ro:false,lockNames:true};
 const SYNC0={mode:"firebase",url:"https://classroonscore-default-rtdb.asia-southeast1.firebasedatabase.app",key:"",room:"school-main",device:"",auto:true,rev:0,lastPush:0,lastPull:0};
 let db={cfg:{items:JSON.parse(JSON.stringify(DEF)),attMin:80,school:"",teacher:"",term:""},
  sec:{...SEC0},sync:{...SYNC0},classes:{},trash:[],log:[],updatedAt:0};
 let lvl=1,room=1,cur="",pending=null,sort={k:"no",d:1},saveT,pushT;
-let locked=false,pinMode="",pinCb=null,tmpPin="",idleT,busy=false;
+let locked=true,pinMode="",pinCb=null,tmpPin="",idleT,busy=false;
 const $=id=>document.getElementById(id);
 const K=()=>`ม.${lvl}/${room}`, cls=()=>db.classes[cur]||[];
 const now=()=>new Date().toLocaleString("th-TH",{dateStyle:"short",timeStyle:"short"});
@@ -914,6 +916,7 @@ addEventListener("focus",()=>{if(db.sync.auto&&db.sync.mode!=="off")smartSync(tr
 
 /* ================= ระบบล็อก ================= */
 function secUI(){
+ $("term").readOnly=locked;
  const b=$("lockBtn");
  b.className="icon-btn"+(db.sec.on?(locked?" lockon":" unlocked"):"");
  b.textContent=db.sec.on?(locked?"🔒":"🔓"):"🔓";
@@ -958,7 +961,7 @@ async function pinSubmit(){
  const v=$("pinIn").value.trim();
  if(pinMode==="unlock"){
   if(!/^\d{4,6}$/.test(v))return pinErr("กรุณาใส่ตัวเลข 4–6 หลัก");
-  if(await hash(db.sec.salt+v)!==db.sec.hash)return pinErr("รหัส PIN ไม่ถูกต้อง");
+  if(v!==EDIT_PIN)return pinErr("รหัส PIN ไม่ถูกต้อง");
   const cb=pinCb;closePin();cb&&cb();return}
  if(pinMode==="new"){
   if(!/^\d{4,6}$/.test(v))return pinErr("รหัสต้องเป็นตัวเลข 4–6 หลัก");
@@ -975,10 +978,8 @@ async function pinSubmit(){
   if(await hash("R"+v.toUpperCase())!==db.sec.rec)return pinErr("รหัสกู้คืนไม่ถูกต้อง");
   closePin();toast("ยืนยันสำเร็จ กรุณาตั้งรหัสใหม่");
   setTimeout(()=>openPin("new","ตั้งรหัส PIN ใหม่","ตัวเลข 4–6 หลัก"),400)}}
-function setupPin(){openPin("new","ตั้งรหัส PIN","ตัวเลข 4–6 หลัก สำหรับป้องกันชื่อและการลบข้อมูล")}
-function changePin(){if(!db.sec.on)return setupPin();
- openPin("unlock","ยืนยันรหัสเดิม","ใส่รหัส PIN ปัจจุบัน",()=>
-  setTimeout(()=>openPin("new","ตั้งรหัส PIN ใหม่","ตัวเลข 4–6 หลัก"),300))}
+function setupPin(){toast("ระบบใช้รหัสแก้ไข 456123 อัตโนมัติ")}
+function changePin(){toast("รหัสแก้ไขถูกกำหนดเป็น 456123")}
 function forgotPin(){if(!db.sec.rec)return toast("ไม่พบรหัสกู้คืน");
  openPin("recover","กู้คืนด้วยรหัสสำรอง","ใส่รหัสกู้คืน 12 หลักที่บันทึกไว้")}
 function showRecovery(){
@@ -1069,7 +1070,7 @@ function render(){
  view.sort((a,b)=>S[sort.k](a,b)*sort.d);
 
  $("title").textContent=`ชั้น ${cur} — ${list.length} คน`;
- const tb=$("tbody");tb.innerHTML="";let ri=0;const RO=NL?"readonly":"";
+ const tb=$("tbody");tb.innerHTML="";let ri=0;const RO=(NL||locked)?"readonly":"";
  view.forEach(o=>{const{s,i,c,rank}=o;let ci=0;
   const cell=(v,f,mx)=>`<td><input value="${v??""}" inputmode="decimal" data-r="${ri}" data-c="${ci++}" data-i="${i}" data-f="${f}" data-max="${mx}"></td>`;
   tb.insertAdjacentHTML("beforeend",`<tr data-i="${i}">
@@ -1092,7 +1093,8 @@ function render(){
 
 /* ---- ป้องกันการแก้ชื่อ ---- */
 function reqNameEdit(i,f){
- guard("แก้ไขชื่อ / รหัสนักเรียน",()=>{render();
+ const action=(f==="name"||f==="sid")?"แก้ไขชื่อ / รหัสนักเรียน":"แก้ไขคะแนน";
+ guard(action,()=>{render();
   setTimeout(()=>{const t=$("tbody").querySelector(`[data-i="${i}"][data-f="${f}"]`);
    if(t){t.focus();t.select()}},60)})}
 $("tbody").addEventListener("mousedown",e=>{
@@ -1103,7 +1105,7 @@ $("tbody").addEventListener("focusin",e=>{const el=e.target;
 
 $("tbody").addEventListener("input",e=>{
  const el=e.target;if(!el.dataset.f||el.tagName==="SELECT"||el.readOnly)return;
- if(db.sec.ro&&locked)return;
+ if(locked)return;
  const s=cls()[+el.dataset.i],f=el.dataset.f;
  if(f==="sid"||f==="name")s[f]=el.value;
  else{let n=parseFloat(el.value);const mx=+el.dataset.max;
@@ -1114,7 +1116,7 @@ $("tbody").addEventListener("input",e=>{
 
 $("tbody").addEventListener("change",e=>{
  const el=e.target;
- if(el.tagName==="SELECT"){cls()[+el.dataset.i].flag=el.value;saveNow();render();return}
+ if(el.tagName==="SELECT"){if(locked)return;cls()[+el.dataset.i].flag=el.value;saveNow();render();return}
  const f=el.dataset.f;
  if((f==="name"||f==="sid")&&el.dataset.old!==undefined&&el.dataset.old!==el.value){
   addLog(f==="name"?"แก้ไขชื่อนักเรียน":"แก้ไขรหัสนักเรียน",
@@ -1142,8 +1144,8 @@ function refreshCalc(){
   rk.className="rk"+(rank===1?" top":"");rk.textContent=rank===1?"🥇 1":rank});
  stats(list)}
 
-const addRow=()=>{db.classes[K()]=db.classes[K()]||[];
- db.classes[K()].push({sid:"",name:"",s:{},att:"",flag:""});saveNow();render()};
+function addRow(){guard("เพิ่มนักเรียน",()=>{db.classes[K()]=db.classes[K()]||[];
+  db.classes[K()].push({sid:"",name:"",s:{},att:"",flag:""});saveNow();render()})}
 function askDel(i){const nm=cls()[i].name||"นักเรียนคนนี้";
  guard("ลบรายชื่อนักเรียน",()=>ask(
   `ต้องการลบ <b>“${nm}”</b> ใช่หรือไม่?<br><span style="font-size:12px">ข้อมูลจะถูกย้ายไปถังขยะ 30 วัน</span>`,
@@ -1171,11 +1173,11 @@ function openTrash(){
   :`<div class="empty"><div>✨</div>ถังขยะว่าง</div>`;
  $("trashModal").classList.add("show")}
 const closeTrash=()=>$("trashModal").classList.remove("show");
-function restore(id){const k=db.trash.findIndex(t=>t.id===id);if(k<0)return;
+function restore(id){guard("กู้คืนข้อมูลนักเรียน",()=>{const k=db.trash.findIndex(t=>t.id===id);if(k<0)return;
  const t=db.trash[k];db.classes[t.k]=db.classes[t.k]||[];
  db.classes[t.k].splice(Math.min(t.i,db.classes[t.k].length),0,t.data);
  db.trash.splice(k,1);addLog("กู้คืนนักเรียน",`${t.data.name||"-"} (${t.k})`);
- saveNow();render();openTrash();toast("กู้คืนเรียบร้อย")}
+ saveNow();render();openTrash();toast("กู้คืนเรียบร้อย")})}
 function emptyTrash(){if(!db.trash.length)return toast("ถังขยะว่างอยู่แล้ว");
  guard("ล้างถังขยะถาวร",()=>ask(`ลบถาวร <b>${db.trash.length} รายการ</b> — <span style="color:var(--bad)">กู้คืนไม่ได้อีก</span>`,
   ()=>{addLog("ล้างถังขยะถาวร",`${db.trash.length} รายการ`);db.trash=[];saveNow();openTrash();render();toast("ล้างถังขยะแล้ว")},"ลบถาวร"))}
@@ -1189,17 +1191,17 @@ function openLog(){
 const closeLog=()=>$("logModal").classList.remove("show");
 
 /* ================= ตั้งค่า ================= */
-function openSettings(){
+function openSettings(){guard("แก้ไขการตั้งค่า",()=>{
  $("sSchool").value=db.cfg.school||"";$("sTeacher").value=db.cfg.teacher||"";
  $("sAtt").value=db.cfg.attMin;$("sIdle").value=db.sec.idle;
  $("tgSec").className="tg"+(db.sec.on?" on":"");
  $("tgRO").className="tg"+(db.sec.ro?" on":"");
  $("tgName").className="tg"+(db.sec.lockNames?" on":"");
- drawItems();$("setModal").classList.add("show")}
+ drawItems();$("setModal").classList.add("show")})}
 const closeSettings=()=>$("setModal").classList.remove("show");
-function toggleSec(){if(!db.sec.on){closeSettings();return setupPin()}
- guard("ปิดระบบล็อก",()=>{db.sec.on=false;locked=false;addLog("ปิดระบบล็อก","");saveNow();
-  $("tgSec").className="tg";render();toast("ปิดระบบล็อกแล้ว")})}
+function toggleSec(){
+ toast("ระบบล็อกถาวร — ต้องใช้รหัส 456123 เพื่อแก้ไข");
+}
 function toggleNameLock(){
  const turnOff=db.sec.lockNames;
  const apply=()=>{db.sec.lockNames=!turnOff;$("tgName").className="tg"+(db.sec.lockNames?" on":"");
@@ -1303,7 +1305,7 @@ function printReport(){document.body.classList.add("rep");window.print();
 
 /* ================= นำเข้า / ส่งออก ================= */
 const togglePaste=()=>$("pasteBox").classList.toggle("hide");
-function importNames(){
+function importNames(){guard("นำเข้ารายชื่อนักเรียน",()=>{
  const L=$("pasteArea").value.split("\n").map(x=>x.trim()).filter(Boolean);if(!L.length)return;
  db.classes[K()]=db.classes[K()]||[];
  L.forEach(line=>{const p=line.split("\t");let sid="",name=line;
@@ -1311,7 +1313,7 @@ function importNames(){
   else{const m=line.match(/^(\d{3,})\s+(.+)$/);if(m){sid=m[1];name=m[2]}else name=line.replace(/^\d+[.)]\s*/,"")}
   db.classes[K()].push({sid,name:name.trim(),s:{},att:"",flag:""})});
  $("pasteArea").value="";togglePaste();addLog("เพิ่มรายชื่อ",`${L.length} คน (${K()})`);
- saveNow();render();toast(`เพิ่ม ${L.length} รายชื่อแล้ว`)}
+ saveNow();render();toast(`เพิ่ม ${L.length} รายชื่อแล้ว`)})}
 function exportCSV(){
  const h=["เลขที่","รหัส","ชื่อ-สกุล",...db.cfg.items.map(i=>i.name),"เวลาเรียน%","รวม","ร้อยละ","เกรด","สถานะ"];
  const rows=cls().map((s,i)=>{const c=calc(s);
@@ -1359,7 +1361,7 @@ addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();closeSettings()
  closeTrash();closeLog();closeSync();closePin()}});
 addEventListener("beforeunload",()=>{if(db.sync.auto&&db.sync.mode!=="off")
  try{navigator.sendBeacon&&0}catch(e){}});
-load();locked=!!db.sec.on;$("term").value=db.cfg.term||"";render();
+load();db.sec.on=true;locked=true;$("term").value=db.cfg.term||"";render();
 /* เริ่มซิงก์เบื้องหลังทันที โดยไม่ต้องกดปุ่ม */
 startAutoSync();
 </script>
