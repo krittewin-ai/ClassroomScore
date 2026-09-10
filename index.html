@@ -506,6 +506,23 @@ td input:focus, td select:focus { box-shadow: 0 0 0 4px rgba(105,86,232,.14); }
 .contact-link span { display: block; font-size: 13px; font-weight: 700; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media(max-width:680px) { .contact-grid { grid-template-columns: 1fr; } .contact-link { min-height: 56px; } }
 
+/* ===== MOBILE OVERFLOW FIX ===== */
+/* ป้องกันหน้าจอเลื่อนแนวนอนบนมือถือ: การ์ด/ปุ่มในโครง grid มี min-width อัตโนมัติ
+   ทำให้ข้อความภาษาไทยที่ตัดคำไม่ได้ดันความกว้างของทั้งหน้าให้เกินจอ */
+html, body { overflow-x: hidden; }
+.grid > *, .side > * { min-width: 0; }
+.btn, .chip, .lv, h3, .contact-sub, .contact-link span, .sw, .li, .badge-term, .search input {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.tbl-wrap { -webkit-overflow-scrolling: touch; }
+@media(max-width:480px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .rep-grid { grid-template-columns: 1fr; }
+  .hero h1 { font-size: 18px; }
+  .bar .btn { font-size: 12.5px; padding: 9px 10px; }
+}
+
 </style>
 </head>
 <body>
