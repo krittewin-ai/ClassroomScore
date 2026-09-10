@@ -1072,7 +1072,7 @@ function render(){
  $("title").textContent=`ชั้น ${cur} — ${list.length} คน`;
  const tb=$("tbody");tb.innerHTML="";let ri=0;const RO=(NL||locked)?"readonly":"";
  view.forEach(o=>{const{s,i,c,rank}=o;let ci=0;
-  const cell=(v,f,mx)=>`<td><input value="${v??""}" inputmode="decimal" data-r="${ri}" data-c="${ci++}" data-i="${i}" data-f="${f}" data-max="${mx}"></td>`;
+  const cell=(v,f,mx)=>`<td><input ${RO} value="${v??""}" inputmode="decimal" data-r="${ri}" data-c="${ci++}" data-i="${i}" data-f="${f}" data-max="${mx}"></td>`;
   tb.insertAdjacentHTML("beforeend",`<tr data-i="${i}">
    <td class="no"><i>${i+1}</i></td>
    <td><input class="txt" ${RO} title="${NL?'ถูกล็อก — คลิกเพื่อขอปลดล็อก':''}" value="${s.sid||""}" data-r="${ri}" data-c="${ci++}" data-i="${i}" data-f="sid"></td>
