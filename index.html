@@ -771,7 +771,22 @@ function cloudURL(read){
  return""}
 function syncHead(){const h={"Content-Type":"application/json"};if(db.sync.mode==="jsonbin"&&db.sync.key)h["X-Master-Key"]=db.sync.key;return h}
 function setBusy(b,txt){busy=b;const el=$("syncBtn");if(el)el.className="icon-btn"+(b?" busy":(db.sync.mode!=="off"?" syncon":""));if(txt)toast(txt)}
-function envelope(){return{rev:(db.sync.rev||0)+1,updatedAt:Date.now(),device:db.sync.device,payload:{cfg:db.cfg,classes:db.classes,trash:db.trash,log:db.log,sec:{on:db.sec.on,hash:db.sec.hash,salt:db.sec.salt,rec:db.sec.rec,idle:db.sec.idle,ro:db.sec.ro,lockNames:db.sec.lockNames}}}}
+/* Firebase ไม่อนุญาตให้ใช้ . # $ [ ] / ในชื่อ property
+   จึงเข้ารหัสเฉพาะคีย์ห้องเรียนก่อนส่ง และถอดรหัสซ้ำได้กับข้อมูลเก่าที่เข้ารหัสหลายชั้น */
+const keyHex=s=>[...new TextEncoder().encode(String(s))].map(x=>x.toString(16).padStart(2,"0")).join("");
+const firebaseKey=s=>"__k_"+keyHex(s);
+function decodeFirebaseKey(k){
+ let out=String(k);
+ for(let i=0;i<5&&out.startsWith("__k_");i++){
+  const h=out.slice(4);if(!/^(?:[0-9a-f]{2})+$/i.test(h))break;
+  try{out=decodeURIComponent(h.replace(/../g,m=>"%"+m))}catch(e){break}
+ }
+ return out;
+}
+function encodeClassesForCloud(classes){const out={};Object.entries(classes||{}).forEach(([k,v])=>out[firebaseKey(k)]=v);return out}
+function decodeClassesFromCloud(classes){const out={};Object.entries(classes||{}).forEach(([k,v])=>out[decodeFirebaseKey(k)]=v);return out}
+function normalizeRemote(d){if(d&&d.payload&&d.payload.classes)d.payload.classes=decodeClassesFromCloud(d.payload.classes);return d}
+function envelope(){return{rev:(db.sync.rev||0)+1,updatedAt:Date.now(),device:db.sync.device,payload:{cfg:db.cfg,classes:encodeClassesForCloud(db.classes),trash:db.trash,log:db.log,sec:{on:db.sec.on,hash:db.sec.hash,salt:db.sec.salt,rec:db.sec.rec,idle:db.sec.idle,ro:db.sec.ro,lockNames:db.sec.lockNames}}}}
 function localStudentCount(){return Object.values(db.classes||{}).reduce((a,v)=>a+(Array.isArray(v)?v.length:0),0)}
 function remoteStudentCount(d){return Object.values(d?.payload?.classes||{}).reduce((a,v)=>a+(Array.isArray(v)?v.length:0),0)}
 function localDataSignature(){try{return JSON.stringify({cfg:db.cfg,classes:db.classes,trash:db.trash,log:db.log,sec:{on:db.sec.on,hash:db.sec.hash,salt:db.sec.salt,rec:db.sec.rec,idle:db.sec.idle,ro:db.sec.ro,lockNames:db.sec.lockNames}})}catch(e){return""}}
@@ -789,7 +804,7 @@ async function fetchRemote(){
  const url=cloudURL(true);if(!url)throw new Error("ยังตั้งค่า Firebase ไม่ครบ");
  const r=await fetch(url,{headers:syncHead(),cache:"no-store"});
  if(r.status===404)return null;if(!r.ok){let msg="HTTP "+r.status;try{const t=await r.text();if(t)msg+=" — "+t.slice(0,120)}catch(e){}throw new Error(msg)}
- let d=await r.json();if(db.sync.mode==="jsonbin"&&d&&d.record)d=d.record;if(!d||!d.payload)return null;return d}
+ let d=await r.json();if(db.sync.mode==="jsonbin"&&d&&d.record)d=d.record;if(!d||!d.payload)return null;return normalizeRemote(d)}
 async function cloudPull(silent){return smartSync(silent)}
 
 /* รวมข้อมูลแบบไม่ลบข้อมูลที่มีอยู่: ใช้ SID/รหัสนักเรียนเป็นตัวหลัก */
