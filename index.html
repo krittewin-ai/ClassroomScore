@@ -507,8 +507,6 @@ td input:focus, td select:focus { box-shadow: 0 0 0 4px rgba(105,86,232,.14); }
 .contact-link span { display: block; font-size: 13px; font-weight: 700; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media(max-width:680px) { .contact-grid { grid-template-columns: 1fr; } .contact-link { min-height: 56px; } }
 
-#syncBtn,#syncModal{display:none!important;}
-
 </style>
 </head>
 <body>
@@ -519,7 +517,8 @@ td input:focus, td select:focus { box-shadow: 0 0 0 4px rgba(105,86,232,.14); }
    <p>ม.1–ม.6 · ปกป้องข้อมูล · ซิงก์คะแนนข้ามเครื่องด้วย Firebase</p></div>
    <div style="display:flex;gap:10px;align-items:center">
     <div class="badge-term">📅 ภาคเรียน <input id="term" placeholder="1/2569"></div>
-        <button class="icon-btn" id="lockBtn" onclick="lockBtnClick()" title="สถานะการล็อก">🔓</button>
+    <button class="icon-btn" id="syncBtn" aria-hidden="true" tabindex="-1" style="display:none">☁️</button>
+    <button class="icon-btn" id="lockBtn" onclick="lockBtnClick()" title="สถานะการล็อก">🔓</button>
     <button class="icon-btn" onclick="openTrash()" title="ถังขยะ">🗑️</button>
     <button class="icon-btn" onclick="openDash()" title="ภาพรวมทุกห้อง">📈</button>
     <button class="icon-btn" onclick="openSettings()" title="ตั้งค่า">⚙️</button>
@@ -749,11 +748,7 @@ function load(){try{const r=JSON.parse(localStorage.getItem("scoreV5"));
  if(r&&r.cfg){db={...db,...r};db.cfg.items=r.cfg.items?.length?r.cfg.items:DEF;
   db.sec={...SEC0,...(r.sec||{})};db.sync={...SYNC0,...(r.sync||{})};
   db.trash=r.trash||[];db.log=r.log||[]}}catch(e){}
- // ซิงก์หลังบ้านแบบบังคับใช้ฐานกลางเดียวกันทุกอุปกรณ์
- db.sync.mode="firebase";
- db.sync.url="https://classroonscore-default-rtdb.asia-southeast1.firebasedatabase.app";
- db.sync.room="school-main";
- db.sync.auto=true;
+ if(!db.sync.url){db.sync.mode="firebase";db.sync.url="https://classroonscore-default-rtdb.asia-southeast1.firebasedatabase.app";db.sync.room=db.sync.room||"school-main"}
  db.trash=db.trash.filter(t=>t.at>Date.now()-30*864e5);
  if(!db.sync.device)db.sync.device=navigator.platform||"เครื่องนี้"}
 function save(){clearTimeout(saveT);saveT=setTimeout(()=>{db.updatedAt=Date.now();
@@ -762,159 +757,159 @@ function saveNow(msg){db.updatedAt=Date.now();localStorage.setItem("scoreV5",JSO
  if(msg)toast(msg);autoPush()}
 function addLog(act,detail){db.log.unshift({at:now(),ts:Date.now(),act,detail,dev:db.sync.device});db.log=db.log.slice(0,250)}
 
-/* ================= ซิงก์คลาวด์ ================= */
+/* ================= ซิงก์คลาวด์อัตโนมัติ ================= */
+let initialSyncDone=false,syncTimer=null,syncInFlight=false,pendingPush=false;
+const CLOUD_RETRY_MS=3000, CLOUD_POLL_MS=8000;
 function cloudURL(read){
- const s=db.sync;if(!s.room)return"";
- if(s.mode==="firebase"){let u=(s.url||"").trim().replace(/\/+$/,"");if(!u)return"";
+ const s=db.sync;
+ if(!s.room)return"";
+ if(s.mode==="firebase"){let u=(s.url||"").trim().replace(/\/+$/,"" );if(!u)return"";
   if(!/^https?:/i.test(u))u="https://"+u;
   return `${u}/scoreapp/${encodeURIComponent(s.room)}.json`+(s.key?`?auth=${encodeURIComponent(s.key)}`:"")}
  if(s.mode==="jsonbin")return `https://api.jsonbin.io/v3/b/${s.room.trim()}`+(read?"/latest":"");
- if(s.mode==="custom"){let u=(s.url||"").trim().replace(/\/+$/,"");if(!u)return"";
-  return `${u}/${encodeURIComponent(s.room)}`}
- return ""}
-function syncHead(){const h={"Content-Type":"application/json"};
- if(db.sync.mode==="jsonbin"&&db.sync.key)h["X-Master-Key"]=db.sync.key;return h}
-function setBusy(b,txt){busy=b;const el=$("syncBtn");if(el)el.className="icon-btn"+(b?" busy":(db.sync.mode!=="off"?" syncon":""));renderSyncStatus();if(txt)toast(txt)}
-function envelope(){return{rev:(db.sync.rev||0)+1,updatedAt:Date.now(),device:db.sync.device,
- payload:{cfg:db.cfg,classes:db.classes,trash:db.trash,log:db.log,
-  sec:{on:db.sec.on,hash:db.sec.hash,salt:db.sec.salt,rec:db.sec.rec,idle:db.sec.idle,ro:db.sec.ro,lockNames:db.sec.lockNames}}}}
+ if(s.mode==="custom"){let u=(s.url||"").trim().replace(/\/+$/,"" );if(!u)return"";return `${u}/${encodeURIComponent(s.room)}`}
+ return""}
+function syncHead(){const h={"Content-Type":"application/json"};if(db.sync.mode==="jsonbin"&&db.sync.key)h["X-Master-Key"]=db.sync.key;return h}
+function setBusy(b,txt){busy=b;const el=$("syncBtn");if(el)el.className="icon-btn"+(b?" busy":(db.sync.mode!=="off"?" syncon":""));if(txt)toast(txt)}
+function envelope(){return{rev:(db.sync.rev||0)+1,updatedAt:Date.now(),device:db.sync.device,payload:{cfg:db.cfg,classes:db.classes,trash:db.trash,log:db.log,sec:{on:db.sec.on,hash:db.sec.hash,salt:db.sec.salt,rec:db.sec.rec,idle:db.sec.idle,ro:db.sec.ro,lockNames:db.sec.lockNames}}}}
+function localStudentCount(){return Object.values(db.classes||{}).reduce((a,v)=>a+(Array.isArray(v)?v.length:0),0)}
+function remoteStudentCount(d){return Object.values(d?.payload?.classes||{}).reduce((a,v)=>a+(Array.isArray(v)?v.length:0),0)}
+function localDataSignature(){try{return JSON.stringify({cfg:db.cfg,classes:db.classes,trash:db.trash,log:db.log,sec:{on:db.sec.on,hash:db.sec.hash,salt:db.sec.salt,rec:db.sec.rec,idle:db.sec.idle,ro:db.sec.ro,lockNames:db.sec.lockNames}})}catch(e){return""}}
 
-async function cloudPush(silent){
- const s=db.sync;const url=cloudURL();if(!url)return;
+async function cloudPush(silent,force){
+ const s=db.sync;if(s.mode==="off")return false;const url=cloudURL();if(!url)return false;
  const doc=envelope();setBusy(true);
  try{const r=await fetch(url,{method:"PUT",headers:syncHead(),body:JSON.stringify(doc),cache:"no-store"});
   if(!r.ok)throw new Error("HTTP "+r.status);
-  s.rev=doc.rev;s.lastPush=doc.updatedAt;s.lastPull=Date.now();
-  localStorage.setItem("scoreV5",JSON.stringify(db));setBusy(false);renderSyncStatus();
-  if(!silent)toast("บันทึกข้อมูลขึ้นคลาวด์แล้ว ✔")}
- catch(e){setBusy(false);renderSyncStatus();if(!silent)toast("เชื่อมต่อคลาวด์ไม่สำเร็จ — "+e.message)}}
-
-function autoPush(){if(db.sync.mode==="off")return;
- clearTimeout(pushT);pushT=setTimeout(()=>cloudPush(true),1200)}
-
+  s.rev=doc.rev;s.lastPush=Date.now();db.updatedAt=doc.updatedAt;localStorage.setItem("scoreV5",JSON.stringify(db));setBusy(false);secUI();
+  if(!silent)toast("ซิงก์ข้อมูลขึ้นคลาวด์แล้ว ✔");return true;
+ }catch(e){setBusy(false);if(!silent)toast("ซิงก์ขึ้นคลาวด์ไม่สำเร็จ — "+e.message);return false}}
+function autoPush(){if(!db.sync.auto||db.sync.mode==="off")return;if(!initialSyncDone){pendingPush=true;return}clearTimeout(pushT);pushT=setTimeout(()=>cloudPush(true),1200)}
 async function fetchRemote(){
- const url=cloudURL(true);if(!url)throw new Error("ยังตั้งค่าไม่ครบ");
+ const url=cloudURL(true);if(!url)throw new Error("ยังตั้งค่า Firebase ไม่ครบ");
  const r=await fetch(url,{headers:syncHead(),cache:"no-store"});
- if(r.status===404)return null;
- if(!r.ok)throw new Error("HTTP "+r.status);
- let d=await r.json();
- if(db.sync.mode==="jsonbin"&&d&&d.record)d=d.record;
- if(!d||!d.payload)return null;
- return d}
+ if(r.status===404)return null;if(!r.ok){let msg="HTTP "+r.status;try{const t=await r.text();if(t)msg+=" — "+t.slice(0,120)}catch(e){}throw new Error(msg)}
+ let d=await r.json();if(db.sync.mode==="jsonbin"&&d&&d.record)d=d.record;if(!d||!d.payload)return null;return d}
+async function cloudPull(silent){return smartSync(silent)}
 
-function dataCount(classes){return Object.values(classes||{}).reduce((a,v)=>a+(Array.isArray(v)?v.length:0),0)}
+/* รวมข้อมูลแบบไม่ลบข้อมูลที่มีอยู่: ใช้ SID/รหัสนักเรียนเป็นตัวหลัก */
+function mergeBothSides(remote){
+ const rp=remote?.payload||{},R=rp.classes||{};
+ const out={};const keys=new Set([...Object.keys(db.classes||{}),...Object.keys(R)]);
+ for(const k of keys){
+  const L=Array.isArray(db.classes?.[k])?db.classes[k]:[];const RR=Array.isArray(R?.[k])?R[k]:[];
+  const map=new Map();
+  const keyOf=s=>((s.sid&&String(s.sid).trim())||((s.code&&String(s.code).trim())?"c:"+String(s.code).trim():"n:"+(s.name||"").trim()));
+  L.forEach(x=>map.set(keyOf(x),JSON.parse(JSON.stringify(x))));
+  RR.forEach(x=>{const key=keyOf(x),old=map.get(key);if(!old){map.set(key,JSON.parse(JSON.stringify(x)));return}
+    /* ถ้าคะแนนฝั่งใดมีข้อมูลมากกว่า ให้เก็บฝั่งนั้น; ถ้าเท่ากันใช้ updatedAt ของเอกสาร */
+    const scoreCount=o=>Object.values(o?.s||{}).filter(v=>v!==""&&v!=null).length;
+    if(scoreCount(x)>scoreCount(old)||(scoreCount(x)===scoreCount(old)&&(Number(remote.updatedAt||0)>Number(db.updatedAt||0))))map.set(key,JSON.parse(JSON.stringify(x)));
+  });
+  out[k]=[...map.values()];
+ }
+ return out;
+}
 
-async function cloudPull(silent){
- if(db.sync.mode==="off")return;
- setBusy(true);
+async function smartSync(silent){
+ if(syncInFlight||db.sync.mode==="off"||!db.sync.auto)return;
+ syncInFlight=true;setBusy(true);
  try{
-  const d=await fetchRemote();
-  const localCount=dataCount(db.classes);
-  if(!d){
-   setBusy(false);
-   // เครื่องแรกที่มีข้อมูลจะสร้างข้อมูลกลางให้อัตโนมัติ
-   if(localCount>0)cloudPush(true);
-   renderSyncStatus();
+  const d=await fetchRemote();const lc=localStudentCount(),rc=remoteStudentCount(d);const lt=Number(db.updatedAt||0),rt=Number(d?.updatedAt||0);
+
+  /* คลาวด์ว่าง: ห้ามทับข้อมูลเครื่อง ถ้าเครื่องนี้มีข้อมูลให้เป็นต้นทาง */
+  if(!d||rc===0){
+   if(lc>0){
+    initialSyncDone=true;pendingPush=false;
+    await cloudPush(true,true);
+    if(!silent)toast(`สำรองข้อมูลขึ้นคลาวด์แล้ว — ${lc} คน`);
+   } else {initialSyncDone=true;db.sync.lastPull=Date.now();localStorage.setItem("scoreV5",JSON.stringify(db));}
    return;
   }
-  const remoteCount=dataCount(d.payload.classes);
-  const remoteTime=Number(d.updatedAt||0),localTime=Number(db.updatedAt||0);
-  setBusy(false);
-  // มือถือ/เครื่องใหม่ไม่มีข้อมูล -> รับข้อมูลกลางทันที
-  if(localCount===0&&remoteCount>0){applyRemote(d);return}
-  // คลาวด์มีข้อมูล แต่เครื่องนี้ว่าง -> รับข้อมูลกลาง
-  if(localCount===0){db.sync.rev=d.rev||0;db.sync.lastPull=Date.now();renderSyncStatus();return}
-  // ทั้งสองฝั่งมีข้อมูล: ให้เวอร์ชันที่แก้ล่าสุดเป็นตัวจริง
-  if(remoteTime>localTime){applyRemote(d);return}
-  if(localTime>remoteTime){cloudPush(true);return}
-  // เวลาเท่ากันแต่คลาวด์มีคนมากกว่า ให้รวมเพิ่มแทนการลบทิ้ง
-  if(remoteCount>localCount){mergeRemote(d);return}
-  db.sync.rev=d.rev||db.sync.rev||0;db.sync.lastPull=Date.now();renderSyncStatus();
- }catch(e){setBusy(false);renderSyncStatus();if(!silent)toast("ดึงข้อมูลจากคลาวด์ไม่สำเร็จ — "+e.message)}}
 
+  /* เครื่องใหม่: รับข้อมูลจากคลาวด์ทันที */
+  if(lc===0&&rc>0){applyRemote(d);initialSyncDone=true;pendingPush=false;if(!silent)toast(`โหลดข้อมูลจากคลาวด์แล้ว — ${rc} คน`);return;}
+
+  /* ทั้งสองฝั่งมีข้อมูล: ถ้าจำนวนคนต่างกัน ให้รวมก่อนเสมอ เพื่อไม่ให้รายชื่อหาย */
+  const merged=mergeBothSides(d);const mergedCount=Object.values(merged).reduce((a,v)=>a+v.length,0);
+  const localSig=JSON.stringify(db.classes||{}),mergedSig=JSON.stringify(merged);
+  if(mergedCount>lc || mergedSig!==localSig){
+    db.classes=merged;
+    if(rc>lc || rt>lt){db.updatedAt=Math.max(lt,rt,Date.now());render();}
+    initialSyncDone=true;
+    await cloudPush(true,true);
+    if(!silent)toast(`รวมข้อมูลแล้ว — ${mergedCount} คน`);
+    return;
+  }
+
+  /* รายชื่อเท่ากัน: ใช้ชุดที่แก้ล่าสุด */
+  if(rt>lt){applyRemote(d);if(!silent)toast("รับข้อมูลล่าสุดจากคลาวด์แล้ว ✔");}
+  else if(lt>rt){initialSyncDone=true;await cloudPush(true,true);if(!silent)toast("ส่งข้อมูลล่าสุดขึ้นคลาวด์แล้ว ✔");}
+  else {initialSyncDone=true;db.sync.lastPull=Date.now();localStorage.setItem("scoreV5",JSON.stringify(db));}
+ }catch(e){
+  initialSyncDone=false;
+  if(!silent)toast("เชื่อม Firebase ไม่สำเร็จ — "+e.message);
+  /* retry เร็วขึ้นจนกว่าจะเชื่อมได้ */
+  clearTimeout(window.__syncRetry);window.__syncRetry=setTimeout(()=>smartSync(true),CLOUD_RETRY_MS);
+ }finally{
+  syncInFlight=false;setBusy(false);secUI();
+  if(initialSyncDone&&pendingPush){pendingPush=false;clearTimeout(pushT);pushT=setTimeout(()=>cloudPush(true),500)}
+ }
+}
+function startAutoSync(){
+ clearInterval(syncTimer);clearTimeout(window.__syncRetry);
+ if(db.sync.mode==="off"||!db.sync.auto)return;
+ setTimeout(()=>smartSync(true),300);
+ syncTimer=setInterval(()=>smartSync(true),CLOUD_POLL_MS);
+}
 function applyRemote(d){
- const p=d.payload||{},keepRec=db.sec.recPlain;
- // รับเฉพาะ payload ที่มีข้อมูลจริง ไม่ทับด้วยค่าว่าง
- if(p.cfg)db.cfg=p.cfg;
- if(p.classes&&dataCount(p.classes)>0)db.classes=p.classes;
- if(p.trash)db.trash=p.trash;
- if(p.log)db.log=p.log;
+ const p=d.payload,keepRec=db.sec.recPlain;
+ if(!p||!p.classes)return;
+ db.cfg=p.cfg||db.cfg;db.classes=p.classes||{};db.trash=p.trash||[];db.log=p.log||[];
  if(p.sec&&p.sec.hash)db.sec={...db.sec,...p.sec,recPlain:keepRec};
- db.sync.rev=d.rev||0;db.sync.lastPull=Date.now();db.updatedAt=d.updatedAt||Date.now();
- locked=!!db.sec.on;localStorage.setItem("scoreV5",JSON.stringify(db));
- $("term").value=db.cfg.term||"";render();renderSyncStatus()}
+ db.sync.rev=d.rev||0;db.sync.lastPull=Date.now();db.updatedAt=d.updatedAt||Date.now();locked=!!db.sec.on;localStorage.setItem("scoreV5",JSON.stringify(db));$("term").value=db.cfg.term||"";render();secUI()}
 
+/* เก็บไว้เพื่อความเข้ากันได้กับโค้ดส่วนเดิม */
 function mergeRemote(d){
- const R=d.payload.classes||{};
- const idx=s=>((s.sid&&String(s.sid).trim())||("n:"+(s.name||"").trim()));
- Object.keys(R).forEach(k=>{
-  const L=db.classes[k]=db.classes[k]||[],map=new Map(L.map(s=>[idx(s),s]));
-  R[k].forEach(rs=>{const key=idx(rs),ls=map.get(key);
-   if(!ls){L.push(rs);map.set(key,rs)}
-   else if(Number(rs.updatedAt||0)>Number(ls.updatedAt||0)){Object.assign(ls,rs)}
-   else if(!rs.updatedAt&&Object.keys(rs.s||{}).length>Object.keys(ls.s||{}).length){Object.assign(ls,rs)}
-  })});
- db.trash=[...db.trash,...(d.payload.trash||[])].filter((t,i,a)=>a.findIndex(x=>x.id===t.id)===i);
- db.log=[...db.log,...(d.payload.log||[])].sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,250);
- addLog("รวมข้อมูลกับคลาวด์",`จากเครื่อง ${d.device||"-"}`);
- db.sync.lastPull=Date.now();saveNow();render();renderSyncStatus();cloudPush(true)}
-
-function renderSyncStatus(){
- const el=$("secLine");if(!el)return;
- const status=busy?"กำลังซิงก์…":(db.sync.lastPull?"ซิงก์แล้ว":"กำลังเชื่อมต่อ");
- // render() จะวาดบรรทัดนี้ใหม่ แต่ฟังก์ชันนี้มีไว้ให้อัปเดตสถานะโดยไม่แตะข้อมูล
- const chip=[...el.querySelectorAll(".chip")].find(x=>x.textContent.includes("ซิงก์"));
- if(chip)chip.textContent="☁️ ซิงก์อัตโนมัติ · "+status;
+ const merged=mergeBothSides(d);
+ db.classes=merged;
+ db.trash=[...db.trash,...(d?.payload?.trash||[])].filter((t,i,a)=>a.findIndex(x=>x.id===t.id)===i);
+ db.log=[...db.log,...(d?.payload?.log||[])].sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,250);
+ db.updatedAt=Math.max(db.updatedAt||0,d?.updatedAt||0);
+ db.sync.lastPull=Date.now();
+ saveNow();
+ render();
 }
 
 async function testConn(){
- readSyncForm();if(db.sync.mode==="off")return toast("เลือกบริการก่อน");
- const url=cloudURL();if(!url)return toast("กรอก URL / รหัสห้องข้อมูลให้ครบ");
- setBusy(true);
- try{const r=await fetch(cloudURL(true),{headers:syncHead(),cache:"no-store"});
-  setBusy(false);
-  toast(r.ok?"เชื่อมต่อสำเร็จ ✔ พร้อมใช้งาน":"เชื่อมต่อได้ แต่ตอบกลับ HTTP "+r.status)}
- catch(e){setBusy(false);toast("เชื่อมต่อไม่สำเร็จ — ตรวจ URL หรือสิทธิ์ฐานข้อมูล")}}
+ const url=cloudURL();if(!url)return toast("ระบบซิงก์ยังไม่ได้ตั้งค่า");
+ setBusy(true);try{const r=await fetch(cloudURL(true),{headers:syncHead(),cache:"no-store"});
+  setBusy(false);toast(r.ok||r.status===404?"เชื่อมต่อ Firebase สำเร็จ ✔":"Firebase ตอบกลับ HTTP "+r.status)}
+ catch(e){setBusy(false);toast("เชื่อมต่อ Firebase ไม่สำเร็จ — "+e.message)}}
 
-function openSync(){
- const s=db.sync;
- $("syMode").value=s.mode;$("syURL").value=s.url;$("syKey").value=s.key;
- $("syRoom").value=s.room;$("syDev").value=s.device;
- $("tgAuto").className="tg"+(s.auto?" on":"");syncModeChange();
- $("syInfo").innerHTML=`สถานะ: <b>${s.mode==="off"?"ปิดอยู่":"เปิดใช้งาน ("+s.mode+")"}</b><br>
-  อัปโหลดล่าสุด: ${fmt(s.lastPush)}<br>ดึงข้อมูลล่าสุด: ${fmt(s.lastPull)}`;
- $("syncModal").classList.add("show")}
-const closeSync=()=>$("syncModal").classList.remove("show");
-function syncModeChange(){const m=$("syMode").value;
- $("rowURL").style.display=(m==="firebase"||m==="custom")?"flex":"none";
- $("rowKey").style.display=(m==="off")?"none":"flex";
- $("rowKey").querySelector("input").placeholder=m==="jsonbin"?"X-Master-Key ของ JSONBin":"เว้นว่างได้ถ้าเป็น test mode";
- $("syRoom").placeholder=m==="jsonbin"?"Bin ID":"เช่น TCH-A1B2"}
-function readSyncForm(){const s=db.sync;
- s.mode=$("syMode").value;s.url=$("syURL").value.trim();s.key=$("syKey").value.trim();
- s.room=$("syRoom").value.trim();s.device=$("syDev").value.trim()||"เครื่องนี้"}
-function genRoom(){$("syRoom").value="TCH-"+rndCode(8,4)}
-function toggleAuto(){db.sync.auto=!db.sync.auto;$("tgAuto").className="tg"+(db.sync.auto?" on":"")}
-function saveSync(){readSyncForm();
- if(db.sync.mode!=="off"&&!db.sync.room)return toast("กรุณาใส่รหัสห้องข้อมูล");
- saveNow("บันทึกการตั้งค่าซิงก์แล้ว");closeSync();secUI()}
-function shareRoom(){const t=`URL: ${$("syURL").value}\nรหัสห้องข้อมูล: ${$("syRoom").value}`;
- navigator.clipboard?.writeText(t).then(()=>toast("คัดลอกแล้ว นำไปกรอกที่เครื่องอื่นได้เลย"),()=>toast(t))}
-addEventListener("focus",()=>{if(db.sync.auto)cloudPull(true)});
-setInterval(()=>{if(db.sync.auto&&!document.hidden)cloudPull(true)},10000);
+function openSync(){toast("ระบบซิงก์ทำงานอัตโนมัติอยู่เบื้องหลัง ไม่ต้องตั้งค่า")}
+const closeSync=()=>$("syncModal")?.classList.remove("show");
+function syncModeChange(){}
+function readSyncForm(){}
+function genRoom(){}
+function toggleAuto(){db.sync.auto=true;startAutoSync();secUI()}
+function saveSync(){db.sync.mode="firebase";db.sync.url="https://classroonscore-default-rtdb.asia-southeast1.firebasedatabase.app";db.sync.room="school-main";db.sync.auto=true;saveNow("เปิดซิงก์อัตโนมัติแล้ว");closeSync();startAutoSync()}
+function shareRoom(){toast("ไม่ต้องแชร์รหัสห้อง ระบบใช้ข้อมูลกลางอัตโนมัติ")}
+addEventListener("focus",()=>{if(db.sync.auto&&db.sync.mode!=="off")smartSync(true)});
 
 /* ================= ระบบล็อก ================= */
 function secUI(){
  const b=$("lockBtn");
  b.className="icon-btn"+(db.sec.on?(locked?" lockon":" unlocked"):"");
  b.textContent=db.sec.on?(locked?"🔒":"🔓"):"🔓";
+ $("syncBtn").className="icon-btn"+(busy?" busy":(db.sync.mode!=="off"?" syncon":""));
  document.body.classList.toggle("ro",db.sec.ro&&locked);
  $("hintTxt").innerHTML=nameLocked()?"🔒 ชื่อถูกล็อก — คลิกที่ชื่อเพื่อขอปลดล็อก":"💡 Enter / ลูกศร = เลื่อนช่อง";
  $("secLine").innerHTML=
   `<span class="chip">${db.sec.on?(locked?"🔒 ล็อกอยู่":"🔓 ปลดล็อกชั่วคราว"):"⚠️ ยังไม่ได้ตั้งรหัส PIN"}</span>`+
   (nameLocked()?`<span class="chip">🛡️ ชื่อนักเรียนถูกป้องกัน</span>`:"")+
   (db.sec.ro&&locked?`<span class="chip">👁️ อ่านอย่างเดียว</span>`:"")+
-  `<span class="chip">☁️ ซิงก์อัตโนมัติ · ${busy?"กำลังเชื่อมต่อ…":(db.sync.lastPull?"เชื่อมต่อแล้ว":"กำลังเริ่มซิงก์")}</span>`+
+  `<span class="chip act" onclick="openSync()">${db.sync.mode==="off"?"☁️ ยังไม่ได้เปิดซิงก์ — กดตั้งค่า":"☁️ ซิงก์: "+db.sync.room+" · ล่าสุด "+fmt(db.sync.lastPush)}</span>`+
   `<span class="chip act" onclick="openTrash()">🗑️ ถังขยะ ${db.trash.length}</span>`+
   (db.sec.on?"":`<span class="chip act" onclick="setupPin()">👉 ตั้งรหัสตอนนี้</span>`)}
 const nameLocked=()=>db.sec.on&&locked&&db.sec.lockNames;
@@ -1350,7 +1345,8 @@ addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();closeSettings()
 addEventListener("beforeunload",()=>{if(db.sync.auto&&db.sync.mode!=="off")
  try{navigator.sendBeacon&&0}catch(e){}});
 load();locked=!!db.sec.on;$("term").value=db.cfg.term||"";render();
-if(db.sync.auto)setTimeout(()=>cloudPull(true),300);
+/* เริ่มซิงก์เบื้องหลังทันที โดยไม่ต้องกดปุ่ม */
+startAutoSync();
 </script>
 </body>
 </html>
